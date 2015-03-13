@@ -57,6 +57,8 @@ source("~/Dropbox/datascience/R/mypetrinet.R")
 
 # Analysis specific global variables
 glb_separate_predict_dataset <- TRUE
+glb_predct_var <- "Price"               # or NULL
+glb_sel_mdl <- NULL
 
 script_df <- data.frame(chunk_label="import_data", chunk_step_major=1, chunk_step_minor=0)
 print(script_df)
@@ -78,7 +80,7 @@ if (glb_separate_predict_dataset) {
     str(predct_df)
 }         
 
-script_df <- rbind(script_df, 
+script_df <- rbind(script_df,
                    data.frame(chunk_label="cleanse_data", 
                               chunk_step_major=max(script_df$chunk_step_major)+1, 
                               chunk_step_minor=0))
@@ -183,11 +185,10 @@ print(script_df)
 ### Step ``r script_df[nrow(script_df), "chunk_step_major"]``.``r script_df[nrow(script_df), "chunk_step_minor"]``: manage missing data
 ```{r manage_missing_data_1, cache=TRUE}
 
-
 script_df <- rbind(script_df, 
     data.frame(chunk_label="encode_retype_data", 
         chunk_step_major=max(script_df$chunk_step_major), 
-        chunk_step_minor=script_df[nrow(script_df), "chunk_step_minor"]+1))        
+        chunk_step_minor=script_df[nrow(script_df), "chunk_step_minor"]+1)) 
 print(script_df)
 ```
 
@@ -240,23 +241,33 @@ print(script_df)
 
 ## Step ``r script_df[nrow(script_df), "chunk_step_major"]``: run models
 ```{r run_models, cache=TRUE}
+models_df <- data.frame()
 
 #   Regression:
 #       Linear:
-print(summary(model1 <- lm(Price ~ AGST, data=entity_df)))
-print(SSE_model1 <- sum(model1$residuals ^ 2))
+ret_lst <- myrun_mdl_lm(indep_vars_vctr=c("AGST"), 
+                        models_df=models_df)
+print(summary(mdl <- ret_lst$model)); print(models_df <- ret_lst$models_df)
 
-print(summary(model2_1 <- lm(Price ~ AGST + HarvestRain, data=entity_df)))
-print(SSE_model2_1 <- sum(model2_1$residuals ^ 2))
+ret_lst <- myrun_mdl_lm(indep_vars_vctr=c("AGST", "HarvestRain"), 
+                        models_df=models_df)
+print(summary(mdl <- ret_lst$model)); print(models_df <- ret_lst$models_df)
 
-print(summary(model2_2 <- lm(Price ~ HarvestRain + WinterRain, data=entity_df)))
-print(SSE_model2_2 <- sum(model2_2$residuals ^ 2))
+ret_lst <- myrun_mdl_lm(indep_vars_vctr=c("HarvestRain", "WinterRain"), 
+                        models_df=models_df)
+print(summary(mdl <- ret_lst$model)); print(models_df <- ret_lst$models_df)
 
-print(summary(model3 <- lm(Price ~ ., data=entity_df)))
-print(SSE_model3 <- sum(model3$residuals ^ 2))
+ret_lst <- myrun_mdl_lm(indep_vars_vctr=".", 
+                        models_df=models_df)
+print(summary(mdl <- ret_lst$model)); print(models_df <- ret_lst$models_df)
 
-print(summary(model4 <- lm(Price ~ AGST + HarvestRain + Age + WinterRain, data=entity_df)))
-print(SSE_model4 <- sum(model4$residuals ^ 2))
+ret_lst <- myrun_mdl_lm(indep_vars_vctr=c("AGST", "HarvestRain", "Age", "WinterRain"), 
+                        models_df=models_df)
+print(summary(mdl <- ret_lst$model)); print(models_df <- ret_lst$models_df)
+glb_sel_mdl <- mdl
+
+print(myplot_scatter(models_df, "SSE", "Adj.R.sq") + 
+          geom_text(aes(label=feats), data=models_df, color="NavyBlue", size=3.5))
 
 # script_df <- rbind(script_df, 
 #                    data.frame(chunk_label="run_models", 

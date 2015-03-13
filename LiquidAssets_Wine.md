@@ -38,6 +38,8 @@ source("~/Dropbox/datascience/R/mypetrinet.R")
 
 # Analysis specific global variables
 glb_separate_predict_dataset <- TRUE
+glb_predct_var <- "Price"               # or NULL
+glb_sel_mdl <- NULL
 
 script_df <- data.frame(chunk_label="import_data", chunk_step_major=1, chunk_step_minor=0)
 print(script_df)
@@ -124,7 +126,7 @@ if (glb_separate_predict_dataset) {
 ```
 
 ```r
-script_df <- rbind(script_df, 
+script_df <- rbind(script_df,
                    data.frame(chunk_label="cleanse_data", 
                               chunk_step_major=max(script_df$chunk_step_major)+1, 
                               chunk_step_minor=0))
@@ -313,7 +315,7 @@ print(script_df)
 script_df <- rbind(script_df, 
     data.frame(chunk_label="encode_retype_data", 
         chunk_step_major=max(script_df$chunk_step_major), 
-        chunk_step_minor=script_df[nrow(script_df), "chunk_step_minor"]+1))        
+        chunk_step_minor=script_df[nrow(script_df), "chunk_step_minor"]+1)) 
 print(script_df)
 ```
 
@@ -419,15 +421,20 @@ print(script_df)
 ## Step `5`: run models
 
 ```r
+models_df <- data.frame()
+
 #   Regression:
 #       Linear:
-print(summary(model1 <- lm(Price ~ AGST, data=entity_df)))
+ret_lst <- myrun_mdl_lm(indep_vars_vctr=c("AGST"), 
+                        models_df=models_df)
+print(summary(mdl <- ret_lst$model)); print(models_df <- ret_lst$models_df)
 ```
 
 ```
 ## 
 ## Call:
-## lm(formula = Price ~ AGST, data = entity_df)
+## lm(formula = reformulate(indep_vars_vctr, response = glb_predct_var), 
+##     data = entity_df)
 ## 
 ## Residuals:
 ##      Min       1Q   Median       3Q      Max 
@@ -445,22 +452,22 @@ print(summary(model1 <- lm(Price ~ AGST, data=entity_df)))
 ## F-statistic: 17.71 on 1 and 23 DF,  p-value: 0.000335
 ```
 
-```r
-print(SSE_model1 <- sum(model1$residuals ^ 2))
 ```
-
-```
-## [1] 5.734875
+##   feats Adj.R.sq      SSE
+## 1  AGST 0.410459 5.734875
 ```
 
 ```r
-print(summary(model2_1 <- lm(Price ~ AGST + HarvestRain, data=entity_df)))
+ret_lst <- myrun_mdl_lm(indep_vars_vctr=c("AGST", "HarvestRain"), 
+                        models_df=models_df)
+print(summary(mdl <- ret_lst$model)); print(models_df <- ret_lst$models_df)
 ```
 
 ```
 ## 
 ## Call:
-## lm(formula = Price ~ AGST + HarvestRain, data = entity_df)
+## lm(formula = reformulate(indep_vars_vctr, response = glb_predct_var), 
+##     data = entity_df)
 ## 
 ## Residuals:
 ##      Min       1Q   Median       3Q      Max 
@@ -479,22 +486,23 @@ print(summary(model2_1 <- lm(Price ~ AGST + HarvestRain, data=entity_df)))
 ## F-statistic: 26.59 on 2 and 22 DF,  p-value: 1.347e-06
 ```
 
-```r
-print(SSE_model2_1 <- sum(model2_1$residuals ^ 2))
 ```
-
-```
-## [1] 2.970373
+##               feats  Adj.R.sq      SSE
+## 1              AGST 0.4104590 5.734875
+## 2 AGST, HarvestRain 0.6807681 2.970373
 ```
 
 ```r
-print(summary(model2_2 <- lm(Price ~ HarvestRain + WinterRain, data=entity_df)))
+ret_lst <- myrun_mdl_lm(indep_vars_vctr=c("HarvestRain", "WinterRain"), 
+                        models_df=models_df)
+print(summary(mdl <- ret_lst$model)); print(models_df <- ret_lst$models_df)
 ```
 
 ```
 ## 
 ## Call:
-## lm(formula = Price ~ HarvestRain + WinterRain, data = entity_df)
+## lm(formula = reformulate(indep_vars_vctr, response = glb_predct_var), 
+##     data = entity_df)
 ## 
 ## Residuals:
 ##     Min      1Q  Median      3Q     Max 
@@ -513,22 +521,24 @@ print(summary(model2_2 <- lm(Price ~ HarvestRain + WinterRain, data=entity_df)))
 ## F-statistic: 5.122 on 2 and 22 DF,  p-value: 0.01492
 ```
 
-```r
-print(SSE_model2_2 <- sum(model2_2$residuals ^ 2))
+```
+##                     feats  Adj.R.sq      SSE
+## 1                    AGST 0.4104590 5.734875
+## 2       AGST, HarvestRain 0.6807681 2.970373
+## 3 HarvestRain, WinterRain 0.2556753 6.925756
 ```
 
-```
-## [1] 6.925756
-```
-
 ```r
-print(summary(model3 <- lm(Price ~ ., data=entity_df)))
+ret_lst <- myrun_mdl_lm(indep_vars_vctr=".", 
+                        models_df=models_df)
+print(summary(mdl <- ret_lst$model)); print(models_df <- ret_lst$models_df)
 ```
 
 ```
 ## 
 ## Call:
-## lm(formula = Price ~ ., data = entity_df)
+## lm(formula = reformulate(indep_vars_vctr, response = glb_predct_var), 
+##     data = entity_df)
 ## 
 ## Residuals:
 ##      Min       1Q   Median       3Q      Max 
@@ -551,22 +561,25 @@ print(summary(model3 <- lm(Price ~ ., data=entity_df)))
 ## F-statistic: 18.47 on 5 and 19 DF,  p-value: 1.044e-06
 ```
 
-```r
-print(SSE_model3 <- sum(model3$residuals ^ 2))
+```
+##                                                 feats  Adj.R.sq      SSE
+## 1                                                AGST 0.4104590 5.734875
+## 2                                   AGST, HarvestRain 0.6807681 2.970373
+## 3                             HarvestRain, WinterRain 0.2556753 6.925756
+## 4 Year, WinterRain, AGST, HarvestRain, Age, FrancePop 0.7844538 1.732113
 ```
 
-```
-## [1] 1.732113
-```
-
 ```r
-print(summary(model4 <- lm(Price ~ AGST + HarvestRain + Age + WinterRain, data=entity_df)))
+ret_lst <- myrun_mdl_lm(indep_vars_vctr=c("AGST", "HarvestRain", "Age", "WinterRain"), 
+                        models_df=models_df)
+print(summary(mdl <- ret_lst$model)); print(models_df <- ret_lst$models_df)
 ```
 
 ```
 ## 
 ## Call:
-## lm(formula = Price ~ AGST + HarvestRain + Age + WinterRain, data = entity_df)
+## lm(formula = reformulate(indep_vars_vctr, response = glb_predct_var), 
+##     data = entity_df)
 ## 
 ## Residuals:
 ##      Min       1Q   Median       3Q      Max 
@@ -587,13 +600,23 @@ print(summary(model4 <- lm(Price ~ AGST + HarvestRain + Age + WinterRain, data=e
 ## F-statistic: 24.17 on 4 and 20 DF,  p-value: 2.036e-07
 ```
 
-```r
-print(SSE_model4 <- sum(model4$residuals ^ 2))
+```
+##                                                 feats  Adj.R.sq      SSE
+## 1                                                AGST 0.4104590 5.734875
+## 2                                   AGST, HarvestRain 0.6807681 2.970373
+## 3                             HarvestRain, WinterRain 0.2556753 6.925756
+## 4 Year, WinterRain, AGST, HarvestRain, Age, FrancePop 0.7844538 1.732113
+## 5                  AGST, HarvestRain, Age, WinterRain 0.7942795 1.740162
 ```
 
+```r
+glb_sel_mdl <- mdl
+
+print(myplot_scatter(models_df, "SSE", "Adj.R.sq") + 
+          geom_text(aes(label=feats), data=models_df, color="NavyBlue", size=3.5))
 ```
-## [1] 1.740162
-```
+
+![](LiquidAssets_Wine_files/figure-html/run_models-1.png) 
 
 ```r
 # script_df <- rbind(script_df, 
@@ -604,14 +627,15 @@ print(script_df)
 ```
 
 ```
-##           chunk_label chunk_step_major chunk_step_minor
-## 1         import_data                1                0
-## 2        inspect_data                2                1
-## 3 manage_missing_data                2                2
-## 4         encode_data                2                2
-## 5    extract_features                3                0
-## 6     select_features                4                0
-## 7          run_models                5                0
+##                  chunk_label chunk_step_major chunk_step_minor
+## 1                import_data                1                0
+## 2               inspect_data                2                1
+## 3        manage_missing_data                2                2
+## 4                encode_data                2                2
+## 5           extract_features                3                0
+## 6            select_features                4                0
+## 7 remove_correlated_features                4                1
+## 8                 run_models                5                0
 ```
 
 Null Hypothesis ($\sf{H_{0}}$): mpg is not impacted by am_fctr.  
@@ -641,8 +665,9 @@ We reject the null hypothesis i.e. we have evidence to conclude that am_fctr imp
 ## loaded via a namespace (and not attached):
 ##  [1] codetools_0.2-10 colorspace_1.2-5 digest_0.6.8     evaluate_0.5.5  
 ##  [5] formatR_1.0      grid_3.1.2       gtable_0.1.2     htmltools_0.2.6 
-##  [9] knitr_1.9        lattice_0.20-30  MASS_7.3-39      Matrix_1.1-5    
-## [13] munsell_0.4.2    plyr_1.8.1       proto_0.3-10     Rcpp_0.11.4     
-## [17] reshape2_1.4.1   rmarkdown_0.5.1  scales_0.2.4     splines_3.1.2   
-## [21] stringr_0.6.2    tcltk_3.1.2      tools_3.1.2      yaml_2.1.13
+##  [9] knitr_1.9        labeling_0.3     lattice_0.20-30  MASS_7.3-39     
+## [13] Matrix_1.1-5     munsell_0.4.2    plyr_1.8.1       proto_0.3-10    
+## [17] Rcpp_0.11.4      reshape2_1.4.1   rmarkdown_0.5.1  scales_0.2.4    
+## [21] splines_3.1.2    stringr_0.6.2    tcltk_3.1.2      tools_3.1.2     
+## [25] yaml_2.1.13
 ```
