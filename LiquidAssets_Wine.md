@@ -125,19 +125,36 @@ if (glb_separate_predict_dataset) {
 
 ```r
 script_df <- rbind(script_df, 
-                   data.frame(chunk_label="inspect_data", 
+                   data.frame(chunk_label="cleanse_data", 
                               chunk_step_major=max(script_df$chunk_step_major)+1, 
-                              chunk_step_minor=1))
+                              chunk_step_minor=0))
 print(script_df)
 ```
 
 ```
 ##    chunk_label chunk_step_major chunk_step_minor
 ## 1  import_data                1                0
-## 2 inspect_data                2                1
+## 2 cleanse_data                2                0
 ```
 
-### Step `2`.`1`: inspect data
+## Step `2`: cleanse data
+
+```r
+script_df <- rbind(script_df, 
+                   data.frame(chunk_label="inspect_explore_data", 
+                              chunk_step_major=max(script_df$chunk_step_major), 
+                              chunk_step_minor=1))
+print(script_df)
+```
+
+```
+##            chunk_label chunk_step_major chunk_step_minor
+## 1          import_data                1                0
+## 2         cleanse_data                2                0
+## 3 inspect_explore_data                2                1
+```
+
+### Step `2`.`1`: inspect/explore data
 
 ```r
 #print(str(entity_df))
@@ -278,38 +295,38 @@ print(sapply(names(predct_df), function(col) sum(is.na(predct_df[, col]))))
 script_df <- rbind(script_df, 
     data.frame(chunk_label="manage_missing_data", 
         chunk_step_major=max(script_df$chunk_step_major), 
-        chunk_step_minor=script_df[which.max(script_df$chunk_step_major), 
-                                   "chunk_step_minor"]+1))
+        chunk_step_minor=script_df[nrow(script_df), "chunk_step_minor"]+1))
 print(script_df)
 ```
 
 ```
-##           chunk_label chunk_step_major chunk_step_minor
-## 1         import_data                1                0
-## 2        inspect_data                2                1
-## 3 manage_missing_data                2                2
+##            chunk_label chunk_step_major chunk_step_minor
+## 1          import_data                1                0
+## 2         cleanse_data                2                0
+## 3 inspect_explore_data                3                1
+## 4  manage_missing_data                3                2
 ```
 
-### Step `2`.`2`: manage missing data
+### Step `3`.`2`: manage missing data
 
 ```r
 script_df <- rbind(script_df, 
-    data.frame(chunk_label="encode_data", 
+    data.frame(chunk_label="encode_retype_data", 
         chunk_step_major=max(script_df$chunk_step_major), 
-        chunk_step_minor=script_df[which.max(script_df$chunk_step_major), 
-                                   "chunk_step_minor"]+1))
+        chunk_step_minor=script_df[nrow(script_df), "chunk_step_minor"]+1))        
 print(script_df)
 ```
 
 ```
-##           chunk_label chunk_step_major chunk_step_minor
-## 1         import_data                1                0
-## 2        inspect_data                2                1
-## 3 manage_missing_data                2                2
-## 4         encode_data                2                2
+##            chunk_label chunk_step_major chunk_step_minor
+## 1          import_data                1                0
+## 2         cleanse_data                2                0
+## 3 inspect_explore_data                3                1
+## 4  manage_missing_data                3                2
+## 5   encode_retype_data                3                3
 ```
 
-### Step `2`.`2`: encode data
+### Step `3`.`3`: encode/retype data
 
 ```r
 # map_<col_name>_df <- myimport_data(
@@ -332,7 +349,7 @@ print(script_df)
 ## 1         import_data                1                0
 ## 2        inspect_data                2                1
 ## 3 manage_missing_data                2                2
-## 4         encode_data                2                2
+## 4  encode_retype_data                2                3
 ## 5    extract_features                3                0
 ```
 
@@ -340,7 +357,7 @@ print(script_df)
 
 ```r
 script_df <- rbind(script_df, 
-                   data.frame(chunk_label="run_models", 
+                   data.frame(chunk_label="select_features", 
                               chunk_step_major=max(script_df$chunk_step_major)+1, 
                               chunk_step_minor=0))
 print(script_df)
@@ -353,12 +370,57 @@ print(script_df)
 ## 3 manage_missing_data                2                2
 ## 4         encode_data                2                2
 ## 5    extract_features                3                0
-## 6          run_models                4                0
+## 6     select_features                4                0
 ```
 
-## Step `4`: run models
+## Step `4`: select features
 
 ```r
+script_df <- rbind(script_df, 
+    data.frame(chunk_label="remove_correlated_features", 
+        chunk_step_major=max(script_df$chunk_step_major),
+        chunk_step_minor=script_df[nrow(script_df), "chunk_step_minor"]+1))        
+print(script_df)
+```
+
+```
+##                  chunk_label chunk_step_major chunk_step_minor
+## 1                import_data                1                0
+## 2               inspect_data                2                1
+## 3        manage_missing_data                2                2
+## 4                encode_data                2                2
+## 5           extract_features                3                0
+## 6            select_features                4                0
+## 7 remove_correlated_features                4                1
+```
+
+### Step `4`.`1`: remove correlated features
+
+```r
+script_df <- rbind(script_df, 
+                   data.frame(chunk_label="run_models", 
+                              chunk_step_major=max(script_df$chunk_step_major)+1, 
+                              chunk_step_minor=0))
+print(script_df)
+```
+
+```
+##                  chunk_label chunk_step_major chunk_step_minor
+## 1                import_data                1                0
+## 2               inspect_data                2                1
+## 3        manage_missing_data                2                2
+## 4                encode_data                2                2
+## 5           extract_features                3                0
+## 6            select_features                4                0
+## 7 remove_correlated_features                4                1
+## 8                 run_models                5                0
+```
+
+## Step `5`: run models
+
+```r
+#   Regression:
+#       Linear:
 print(summary(model1 <- lm(Price ~ AGST, data=entity_df)))
 ```
 
@@ -392,7 +454,7 @@ print(SSE_model1 <- sum(model1$residuals ^ 2))
 ```
 
 ```r
-print(summary(model2 <- lm(Price ~ AGST + HarvestRain, data=entity_df)))
+print(summary(model2_1 <- lm(Price ~ AGST + HarvestRain, data=entity_df)))
 ```
 
 ```
@@ -418,11 +480,45 @@ print(summary(model2 <- lm(Price ~ AGST + HarvestRain, data=entity_df)))
 ```
 
 ```r
-print(SSE_model2 <- sum(model2$residuals ^ 2))
+print(SSE_model2_1 <- sum(model2_1$residuals ^ 2))
 ```
 
 ```
 ## [1] 2.970373
+```
+
+```r
+print(summary(model2_2 <- lm(Price ~ HarvestRain + WinterRain, data=entity_df)))
+```
+
+```
+## 
+## Call:
+## lm(formula = Price ~ HarvestRain + WinterRain, data = entity_df)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -1.0933 -0.3222 -0.1012  0.3871  1.1877 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)  7.865e+00  6.616e-01  11.888 4.76e-11 ***
+## HarvestRain -4.971e-03  1.601e-03  -3.105  0.00516 ** 
+## WinterRain  -9.848e-05  9.007e-04  -0.109  0.91392    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.5611 on 22 degrees of freedom
+## Multiple R-squared:  0.3177,	Adjusted R-squared:  0.2557 
+## F-statistic: 5.122 on 2 and 22 DF,  p-value: 0.01492
+```
+
+```r
+print(SSE_model2_2 <- sum(model2_2$residuals ^ 2))
+```
+
+```
+## [1] 6.925756
 ```
 
 ```r
@@ -464,6 +560,42 @@ print(SSE_model3 <- sum(model3$residuals ^ 2))
 ```
 
 ```r
+print(summary(model4 <- lm(Price ~ AGST + HarvestRain + Age + WinterRain, data=entity_df)))
+```
+
+```
+## 
+## Call:
+## lm(formula = Price ~ AGST + HarvestRain + Age + WinterRain, data = entity_df)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -0.45470 -0.24273  0.00752  0.19773  0.53637 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(>|t|)    
+## (Intercept) -3.4299802  1.7658975  -1.942 0.066311 .  
+## AGST         0.6072093  0.0987022   6.152  5.2e-06 ***
+## HarvestRain -0.0039715  0.0008538  -4.652 0.000154 ***
+## Age          0.0239308  0.0080969   2.956 0.007819 ** 
+## WinterRain   0.0010755  0.0005073   2.120 0.046694 *  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.295 on 20 degrees of freedom
+## Multiple R-squared:  0.8286,	Adjusted R-squared:  0.7943 
+## F-statistic: 24.17 on 4 and 20 DF,  p-value: 2.036e-07
+```
+
+```r
+print(SSE_model4 <- sum(model4$residuals ^ 2))
+```
+
+```
+## [1] 1.740162
+```
+
+```r
 # script_df <- rbind(script_df, 
 #                    data.frame(chunk_label="run_models", 
 #                               chunk_step_major=max(script_df$chunk_step_major)+1, 
@@ -478,7 +610,8 @@ print(script_df)
 ## 3 manage_missing_data                2                2
 ## 4         encode_data                2                2
 ## 5    extract_features                3                0
-## 6          run_models                4                0
+## 6     select_features                4                0
+## 7          run_models                5                0
 ```
 
 Null Hypothesis ($\sf{H_{0}}$): mpg is not impacted by am_fctr.  
@@ -490,35 +623,6 @@ The variance by am_fctr appears to be independent.
 #              var.equal=FALSE)$conf)
 ```
 We reject the null hypothesis i.e. we have evidence to conclude that am_fctr impacts mpg (95% confidence). Manual transmission is better for miles per gallon versus automatic transmission.
-
-## remove nearZeroVar features (not much variance)
-#require(reshape)
-#var_features_df <- melt(summaryBy(. ~ factor(0), data=entity_df[, features_lst], 
-#                             FUN=var, keep.names=TRUE), 
-#                             variable_name=c("feature"))
-#names(var_features_df)[2] <- "var"
-#print(var_features_df[order(var_features_df$var), ])
-# summaryBy ignores factors whereas nearZeroVar inspects factors
-
-# k_fold <- 5
-# entity_df[order(entity_df$classe, 
-#                   entity_df$user_name, 
-#                   entity_df$my.rnorm),"my.cv_ix"] <- 
-#     rep(1:k_fold, length.out=nrow(entity_df))
-# summaryBy(X ~ my.cv_ix, data=entity_df, FUN=length)
-# tapply(entity_df$X, list(entity_df$classe, entity_df$user_name, 
-#                            entity_df$my.cv_ix), length)
-
-#require(DAAG)
-#entity_df$classe.proper <- as.numeric(entity_df$classe == "A")
-#rnorm.glm <- glm(classe.proper ~ rnorm, family=binomial, data=entity_df)
-#cv.binary(rnorm.glm, nfolds=k_fold, print.details=TRUE)
-#result <- cv.lm(df=entity_df, form.lm=formula(classe ~ rnorm), 
-#                    m=k_fold, seed=12345, printit=TRUE)
-
-#plot(mdl_1$finalModel, uniform=TRUE, main="base")
-#text(mdl_1$finalModel, use.n=TRUE, all=TRUE, cex=0.8)
-
 
 
 ```

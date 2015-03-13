@@ -166,15 +166,27 @@ print(script_df)</code></pre>
 ##  - attr(*, &quot;comment&quot;)= chr &quot;predct_df&quot;
 ## NULL</code></pre>
 <pre class="r"><code>script_df &lt;- rbind(script_df, 
-                   data.frame(chunk_label=&quot;inspect_data&quot;, 
+                   data.frame(chunk_label=&quot;cleanse_data&quot;, 
                               chunk_step_major=max(script_df$chunk_step_major)+1, 
-                              chunk_step_minor=1))
+                              chunk_step_minor=0))
 print(script_df)</code></pre>
 <pre><code>##    chunk_label chunk_step_major chunk_step_minor
 ## 1  import_data                1                0
-## 2 inspect_data                2                1</code></pre>
-<div id="step-2.1-inspect-data" class="section level3">
-<h3>Step <code>2</code>.<code>1</code>: inspect data</h3>
+## 2 cleanse_data                2                0</code></pre>
+</div>
+<div id="step-2-cleanse-data" class="section level2">
+<h2>Step <code>2</code>: cleanse data</h2>
+<pre class="r"><code>script_df &lt;- rbind(script_df, 
+                   data.frame(chunk_label=&quot;inspect_explore_data&quot;, 
+                              chunk_step_major=max(script_df$chunk_step_major), 
+                              chunk_step_minor=1))
+print(script_df)</code></pre>
+<pre><code>##            chunk_label chunk_step_major chunk_step_minor
+## 1          import_data                1                0
+## 2         cleanse_data                2                0
+## 3 inspect_explore_data                2                1</code></pre>
+<div id="step-2.1-inspectexplore-data" class="section level3">
+<h3>Step <code>2</code>.<code>1</code>: inspect/explore data</h3>
 <pre class="r"><code>#print(str(entity_df))
 #View(entity_df)
 
@@ -289,30 +301,30 @@ print(summary(entity_df))</code></pre>
 script_df &lt;- rbind(script_df, 
     data.frame(chunk_label=&quot;manage_missing_data&quot;, 
         chunk_step_major=max(script_df$chunk_step_major), 
-        chunk_step_minor=script_df[which.max(script_df$chunk_step_major), 
-                                   &quot;chunk_step_minor&quot;]+1))
+        chunk_step_minor=script_df[nrow(script_df), &quot;chunk_step_minor&quot;]+1))
 print(script_df)</code></pre>
-<pre><code>##           chunk_label chunk_step_major chunk_step_minor
-## 1         import_data                1                0
-## 2        inspect_data                2                1
-## 3 manage_missing_data                2                2</code></pre>
+<pre><code>##            chunk_label chunk_step_major chunk_step_minor
+## 1          import_data                1                0
+## 2         cleanse_data                2                0
+## 3 inspect_explore_data                3                1
+## 4  manage_missing_data                3                2</code></pre>
 </div>
-<div id="step-2.2-manage-missing-data" class="section level3">
-<h3>Step <code>2</code>.<code>2</code>: manage missing data</h3>
+<div id="step-3.2-manage-missing-data" class="section level3">
+<h3>Step <code>3</code>.<code>2</code>: manage missing data</h3>
 <pre class="r"><code>script_df &lt;- rbind(script_df, 
-    data.frame(chunk_label=&quot;encode_data&quot;, 
+    data.frame(chunk_label=&quot;encode_retype_data&quot;, 
         chunk_step_major=max(script_df$chunk_step_major), 
-        chunk_step_minor=script_df[which.max(script_df$chunk_step_major), 
-                                   &quot;chunk_step_minor&quot;]+1))
+        chunk_step_minor=script_df[nrow(script_df), &quot;chunk_step_minor&quot;]+1))        
 print(script_df)</code></pre>
-<pre><code>##           chunk_label chunk_step_major chunk_step_minor
-## 1         import_data                1                0
-## 2        inspect_data                2                1
-## 3 manage_missing_data                2                2
-## 4         encode_data                2                2</code></pre>
+<pre><code>##            chunk_label chunk_step_major chunk_step_minor
+## 1          import_data                1                0
+## 2         cleanse_data                2                0
+## 3 inspect_explore_data                3                1
+## 4  manage_missing_data                3                2
+## 5   encode_retype_data                3                3</code></pre>
 </div>
-<div id="step-2.2-encode-data" class="section level3">
-<h3>Step <code>2</code>.<code>2</code>: encode data</h3>
+<div id="step-3.3-encoderetype-data" class="section level3">
+<h3>Step <code>3</code>.<code>3</code>: encode/retype data</h3>
 <pre class="r"><code># map_&lt;col_name&gt;_df &lt;- myimport_data(
 #     url=&quot;&lt;map_url&gt;&quot;, 
 #     comment=&quot;map_&lt;col_name&gt;_df&quot;, print_diagn=TRUE)
@@ -330,14 +342,14 @@ print(script_df)</code></pre>
 ## 1         import_data                1                0
 ## 2        inspect_data                2                1
 ## 3 manage_missing_data                2                2
-## 4         encode_data                2                2
+## 4  encode_retype_data                2                3
 ## 5    extract_features                3                0</code></pre>
 </div>
 </div>
 <div id="step-3-extract-features" class="section level2">
 <h2>Step <code>3</code>: extract features</h2>
 <pre class="r"><code>script_df &lt;- rbind(script_df, 
-                   data.frame(chunk_label=&quot;run_models&quot;, 
+                   data.frame(chunk_label=&quot;select_features&quot;, 
                               chunk_step_major=max(script_df$chunk_step_major)+1, 
                               chunk_step_minor=0))
 print(script_df)</code></pre>
@@ -347,11 +359,46 @@ print(script_df)</code></pre>
 ## 3 manage_missing_data                2                2
 ## 4         encode_data                2                2
 ## 5    extract_features                3                0
-## 6          run_models                4                0</code></pre>
+## 6     select_features                4                0</code></pre>
 </div>
-<div id="step-4-run-models" class="section level2">
-<h2>Step <code>4</code>: run models</h2>
-<pre class="r"><code>print(summary(model1 &lt;- lm(Price ~ AGST, data=entity_df)))</code></pre>
+<div id="step-4-select-features" class="section level2">
+<h2>Step <code>4</code>: select features</h2>
+<pre class="r"><code>script_df &lt;- rbind(script_df, 
+    data.frame(chunk_label=&quot;remove_correlated_features&quot;, 
+        chunk_step_major=max(script_df$chunk_step_major),
+        chunk_step_minor=script_df[nrow(script_df), &quot;chunk_step_minor&quot;]+1))        
+print(script_df)</code></pre>
+<pre><code>##                  chunk_label chunk_step_major chunk_step_minor
+## 1                import_data                1                0
+## 2               inspect_data                2                1
+## 3        manage_missing_data                2                2
+## 4                encode_data                2                2
+## 5           extract_features                3                0
+## 6            select_features                4                0
+## 7 remove_correlated_features                4                1</code></pre>
+<div id="step-4.1-remove-correlated-features" class="section level3">
+<h3>Step <code>4</code>.<code>1</code>: remove correlated features</h3>
+<pre class="r"><code>script_df &lt;- rbind(script_df, 
+                   data.frame(chunk_label=&quot;run_models&quot;, 
+                              chunk_step_major=max(script_df$chunk_step_major)+1, 
+                              chunk_step_minor=0))
+print(script_df)</code></pre>
+<pre><code>##                  chunk_label chunk_step_major chunk_step_minor
+## 1                import_data                1                0
+## 2               inspect_data                2                1
+## 3        manage_missing_data                2                2
+## 4                encode_data                2                2
+## 5           extract_features                3                0
+## 6            select_features                4                0
+## 7 remove_correlated_features                4                1
+## 8                 run_models                5                0</code></pre>
+</div>
+</div>
+<div id="step-5-run-models" class="section level2">
+<h2>Step <code>5</code>: run models</h2>
+<pre class="r"><code>#   Regression:
+#       Linear:
+print(summary(model1 &lt;- lm(Price ~ AGST, data=entity_df)))</code></pre>
 <pre><code>## 
 ## Call:
 ## lm(formula = Price ~ AGST, data = entity_df)
@@ -372,7 +419,7 @@ print(script_df)</code></pre>
 ## F-statistic: 17.71 on 1 and 23 DF,  p-value: 0.000335</code></pre>
 <pre class="r"><code>print(SSE_model1 &lt;- sum(model1$residuals ^ 2))</code></pre>
 <pre><code>## [1] 5.734875</code></pre>
-<pre class="r"><code>print(summary(model2 &lt;- lm(Price ~ AGST + HarvestRain, data=entity_df)))</code></pre>
+<pre class="r"><code>print(summary(model2_1 &lt;- lm(Price ~ AGST + HarvestRain, data=entity_df)))</code></pre>
 <pre><code>## 
 ## Call:
 ## lm(formula = Price ~ AGST + HarvestRain, data = entity_df)
@@ -392,8 +439,30 @@ print(script_df)</code></pre>
 ## Residual standard error: 0.3674 on 22 degrees of freedom
 ## Multiple R-squared:  0.7074, Adjusted R-squared:  0.6808 
 ## F-statistic: 26.59 on 2 and 22 DF,  p-value: 1.347e-06</code></pre>
-<pre class="r"><code>print(SSE_model2 &lt;- sum(model2$residuals ^ 2))</code></pre>
+<pre class="r"><code>print(SSE_model2_1 &lt;- sum(model2_1$residuals ^ 2))</code></pre>
 <pre><code>## [1] 2.970373</code></pre>
+<pre class="r"><code>print(summary(model2_2 &lt;- lm(Price ~ HarvestRain + WinterRain, data=entity_df)))</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = Price ~ HarvestRain + WinterRain, data = entity_df)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -1.0933 -0.3222 -0.1012  0.3871  1.1877 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  7.865e+00  6.616e-01  11.888 4.76e-11 ***
+## HarvestRain -4.971e-03  1.601e-03  -3.105  0.00516 ** 
+## WinterRain  -9.848e-05  9.007e-04  -0.109  0.91392    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.5611 on 22 degrees of freedom
+## Multiple R-squared:  0.3177, Adjusted R-squared:  0.2557 
+## F-statistic: 5.122 on 2 and 22 DF,  p-value: 0.01492</code></pre>
+<pre class="r"><code>print(SSE_model2_2 &lt;- sum(model2_2$residuals ^ 2))</code></pre>
+<pre><code>## [1] 6.925756</code></pre>
 <pre class="r"><code>print(summary(model3 &lt;- lm(Price ~ ., data=entity_df)))</code></pre>
 <pre><code>## 
 ## Call:
@@ -420,6 +489,30 @@ print(script_df)</code></pre>
 ## F-statistic: 18.47 on 5 and 19 DF,  p-value: 1.044e-06</code></pre>
 <pre class="r"><code>print(SSE_model3 &lt;- sum(model3$residuals ^ 2))</code></pre>
 <pre><code>## [1] 1.732113</code></pre>
+<pre class="r"><code>print(summary(model4 &lt;- lm(Price ~ AGST + HarvestRain + Age + WinterRain, data=entity_df)))</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = Price ~ AGST + HarvestRain + Age + WinterRain, data = entity_df)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -0.45470 -0.24273  0.00752  0.19773  0.53637 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) -3.4299802  1.7658975  -1.942 0.066311 .  
+## AGST         0.6072093  0.0987022   6.152  5.2e-06 ***
+## HarvestRain -0.0039715  0.0008538  -4.652 0.000154 ***
+## Age          0.0239308  0.0080969   2.956 0.007819 ** 
+## WinterRain   0.0010755  0.0005073   2.120 0.046694 *  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.295 on 20 degrees of freedom
+## Multiple R-squared:  0.8286, Adjusted R-squared:  0.7943 
+## F-statistic: 24.17 on 4 and 20 DF,  p-value: 2.036e-07</code></pre>
+<pre class="r"><code>print(SSE_model4 &lt;- sum(model4$residuals ^ 2))</code></pre>
+<pre><code>## [1] 1.740162</code></pre>
 <pre class="r"><code># script_df &lt;- rbind(script_df, 
 #                    data.frame(chunk_label=&quot;run_models&quot;, 
 #                               chunk_step_major=max(script_df$chunk_step_major)+1, 
@@ -431,73 +524,13 @@ print(script_df)</code></pre>
 ## 3 manage_missing_data                2                2
 ## 4         encode_data                2                2
 ## 5    extract_features                3                0
-## 6          run_models                4                0</code></pre>
+## 6     select_features                4                0
+## 7          run_models                5                0</code></pre>
 <p>Null Hypothesis (<span class="math">\(\sf{H_{0}}\)</span>): mpg is not impacted by am_fctr.<br />The variance by am_fctr appears to be independent.</p>
 <pre class="r"><code># print(t.test(subset(cars_df, am_fctr == &quot;automatic&quot;)$mpg, 
 #              subset(cars_df, am_fctr == &quot;manual&quot;)$mpg, 
 #              var.equal=FALSE)$conf)</code></pre>
 <p>We reject the null hypothesis i.e. we have evidence to conclude that am_fctr impacts mpg (95% confidence). Manual transmission is better for miles per gallon versus automatic transmission.</p>
-</div>
-<div id="remove-nearzerovar-features-not-much-variance" class="section level2">
-<h2>remove nearZeroVar features (not much variance)</h2>
-</div>
-</div>
-<div id="requirereshape" class="section level1">
-<h1>require(reshape)</h1>
-</div>
-<div id="var_features_df---meltsummaryby.-factor0-dataentity_df-features_lst" class="section level1">
-<h1>var_features_df &lt;- melt(summaryBy(. ~ factor(0), data=entity_df[, features_lst],</h1>
-</div>
-<div id="funvar-keep.namestrue" class="section level1">
-<h1>FUN=var, keep.names=TRUE),</h1>
-</div>
-<div id="variable_namecfeature" class="section level1">
-<h1>variable_name=c(“feature”))</h1>
-</div>
-<div id="namesvar_features_df2---var" class="section level1">
-<h1>names(var_features_df)[2] &lt;- “var”</h1>
-</div>
-<div id="printvar_features_dfordervar_features_dfvar" class="section level1">
-<h1>print(var_features_df[order(var_features_df$var), ])</h1>
-</div>
-<div id="summaryby-ignores-factors-whereas-nearzerovar-inspects-factors" class="section level1">
-<h1>summaryBy ignores factors whereas nearZeroVar inspects factors</h1>
-</div>
-<div id="k_fold---5" class="section level1">
-<h1>k_fold &lt;- 5</h1>
-</div>
-<div id="entity_dforderentity_dfclasse-entity_dfuser_name-entity_dfmy.rnormmy.cv_ix--" class="section level1">
-<h1>entity_df[order(entity_df<span class="math">\(classe, # entity_df\)</span>user_name, # entity_df$my.rnorm),“my.cv_ix”] &lt;-</h1>
-</div>
-<div id="rep1k_fold-length.outnrowentity_df" class="section level1">
-<h1>rep(1:k_fold, length.out=nrow(entity_df))</h1>
-</div>
-<div id="summarybyx-my.cv_ix-dataentity_df-funlength" class="section level1">
-<h1>summaryBy(X ~ my.cv_ix, data=entity_df, FUN=length)</h1>
-</div>
-<div id="tapplyentity_dfx-listentity_dfclasse-entity_dfuser_name-entity_dfmy.cv_ix-length" class="section level1">
-<h1>tapply(entity_df<span class="math">\(X, list(entity_df\)</span>classe, entity_df<span class="math">\(user_name, # entity_df\)</span>my.cv_ix), length)</h1>
-</div>
-<div id="requiredaag" class="section level1">
-<h1>require(DAAG)</h1>
-</div>
-<div id="entity_dfclasse.proper---as.numericentity_dfclasse-a" class="section level1">
-<h1>entity_df<span class="math">\(classe.proper &lt;- as.numeric(entity_df\)</span>classe == “A”)</h1>
-</div>
-<div id="rnorm.glm---glmclasse.proper-rnorm-familybinomial-dataentity_df" class="section level1">
-<h1>rnorm.glm &lt;- glm(classe.proper ~ rnorm, family=binomial, data=entity_df)</h1>
-</div>
-<div id="cv.binaryrnorm.glm-nfoldsk_fold-print.detailstrue" class="section level1">
-<h1>cv.binary(rnorm.glm, nfolds=k_fold, print.details=TRUE)</h1>
-</div>
-<div id="result---cv.lmdfentity_df-form.lmformulaclasse-rnorm" class="section level1">
-<h1>result &lt;- cv.lm(df=entity_df, form.lm=formula(classe ~ rnorm),</h1>
-</div>
-<div id="mk_fold-seed12345-printittrue" class="section level1">
-<h1>m=k_fold, seed=12345, printit=TRUE)</h1>
-</div>
-<div id="plotmdl_1finalmodel-uniformtrue-mainbase-textmdl_1finalmodel-use.ntrue-alltrue-cex0.8" class="section level1">
-<h1>plot(mdl_1<span class="math">\(finalModel, uniform=TRUE, main=&quot;base&quot;) #text(mdl_1\)</span>finalModel, use.n=TRUE, all=TRUE, cex=0.8)</h1>
 <pre><code>## R version 3.1.2 (2014-10-31)
 ## Platform: x86_64-apple-darwin13.4.0 (64-bit)
 ## 
@@ -517,6 +550,7 @@ print(script_df)</code></pre>
 ## [13] munsell_0.4.2    plyr_1.8.1       proto_0.3-10     Rcpp_0.11.4     
 ## [17] reshape2_1.4.1   rmarkdown_0.5.1  scales_0.2.4     splines_3.1.2   
 ## [21] stringr_0.6.2    tcltk_3.1.2      tools_3.1.2      yaml_2.1.13</code></pre>
+</div>
 </div>
 
 

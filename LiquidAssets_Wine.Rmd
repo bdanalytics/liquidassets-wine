@@ -79,14 +79,24 @@ if (glb_separate_predict_dataset) {
 }         
 
 script_df <- rbind(script_df, 
-                   data.frame(chunk_label="inspect_data", 
+                   data.frame(chunk_label="cleanse_data", 
                               chunk_step_major=max(script_df$chunk_step_major)+1, 
+                              chunk_step_minor=0))
+print(script_df)
+```
+
+## Step ``r script_df[nrow(script_df), "chunk_step_major"]``: cleanse data
+```{r cleanse_data, cache=TRUE}
+
+script_df <- rbind(script_df, 
+                   data.frame(chunk_label="inspect_explore_data", 
+                              chunk_step_major=max(script_df$chunk_step_major), 
                               chunk_step_minor=1))
 print(script_df)
 ```
 
-### Step ``r script_df[nrow(script_df), "chunk_step_major"]``.``r script_df[nrow(script_df), "chunk_step_minor"]``: inspect data
-```{r inspect_data_1, cache=TRUE}
+### Step ``r script_df[nrow(script_df), "chunk_step_major"]``.``r script_df[nrow(script_df), "chunk_step_minor"]``: inspect/explore data
+```{r inspect_explore_data_1, cache=TRUE}
 #print(str(entity_df))
 #View(entity_df)
 
@@ -166,24 +176,23 @@ print(sapply(names(predct_df), function(col) sum(is.na(predct_df[, col]))))
 script_df <- rbind(script_df, 
     data.frame(chunk_label="manage_missing_data", 
         chunk_step_major=max(script_df$chunk_step_major), 
-        chunk_step_minor=script_df[which.max(script_df$chunk_step_major), 
-                                   "chunk_step_minor"]+1))
+        chunk_step_minor=script_df[nrow(script_df), "chunk_step_minor"]+1))
 print(script_df)
 ```
 
 ### Step ``r script_df[nrow(script_df), "chunk_step_major"]``.``r script_df[nrow(script_df), "chunk_step_minor"]``: manage missing data
 ```{r manage_missing_data_1, cache=TRUE}
 
+
 script_df <- rbind(script_df, 
-    data.frame(chunk_label="encode_data", 
+    data.frame(chunk_label="encode_retype_data", 
         chunk_step_major=max(script_df$chunk_step_major), 
-        chunk_step_minor=script_df[which.max(script_df$chunk_step_major), 
-                                   "chunk_step_minor"]+1))
+        chunk_step_minor=script_df[nrow(script_df), "chunk_step_minor"]+1))        
 print(script_df)
 ```
 
-### Step ``r script_df[nrow(script_df), "chunk_step_major"]``.``r script_df[nrow(script_df), "chunk_step_minor"]``: encode data
-```{r encode_data_1, cache=TRUE}
+### Step ``r script_df[nrow(script_df), "chunk_step_major"]``.``r script_df[nrow(script_df), "chunk_step_minor"]``: encode/retype data
+```{r encode_retype_data_1, cache=TRUE}
 # map_<col_name>_df <- myimport_data(
 #     url="<map_url>", 
 #     comment="map_<col_name>_df", print_diagn=TRUE)
@@ -203,6 +212,26 @@ print(script_df)
 ```{r extract_features, cache=TRUE}
 
 script_df <- rbind(script_df, 
+                   data.frame(chunk_label="select_features", 
+                              chunk_step_major=max(script_df$chunk_step_major)+1, 
+                              chunk_step_minor=0))
+print(script_df)
+```
+
+## Step ``r script_df[nrow(script_df), "chunk_step_major"]``: select features
+```{r select_features, cache=TRUE}
+
+script_df <- rbind(script_df, 
+    data.frame(chunk_label="remove_correlated_features", 
+        chunk_step_major=max(script_df$chunk_step_major),
+        chunk_step_minor=script_df[nrow(script_df), "chunk_step_minor"]+1))        
+print(script_df)
+```
+
+### Step ``r script_df[nrow(script_df), "chunk_step_major"]``.``r script_df[nrow(script_df), "chunk_step_minor"]``: remove correlated features
+```{r remove_correlated_features, cache=TRUE}
+
+script_df <- rbind(script_df, 
                    data.frame(chunk_label="run_models", 
                               chunk_step_major=max(script_df$chunk_step_major)+1, 
                               chunk_step_minor=0))
@@ -211,14 +240,23 @@ print(script_df)
 
 ## Step ``r script_df[nrow(script_df), "chunk_step_major"]``: run models
 ```{r run_models, cache=TRUE}
+
+#   Regression:
+#       Linear:
 print(summary(model1 <- lm(Price ~ AGST, data=entity_df)))
 print(SSE_model1 <- sum(model1$residuals ^ 2))
 
-print(summary(model2 <- lm(Price ~ AGST + HarvestRain, data=entity_df)))
-print(SSE_model2 <- sum(model2$residuals ^ 2))
+print(summary(model2_1 <- lm(Price ~ AGST + HarvestRain, data=entity_df)))
+print(SSE_model2_1 <- sum(model2_1$residuals ^ 2))
+
+print(summary(model2_2 <- lm(Price ~ HarvestRain + WinterRain, data=entity_df)))
+print(SSE_model2_2 <- sum(model2_2$residuals ^ 2))
 
 print(summary(model3 <- lm(Price ~ ., data=entity_df)))
 print(SSE_model3 <- sum(model3$residuals ^ 2))
+
+print(summary(model4 <- lm(Price ~ AGST + HarvestRain + Age + WinterRain, data=entity_df)))
+print(SSE_model4 <- sum(model4$residuals ^ 2))
 
 # script_df <- rbind(script_df, 
 #                    data.frame(chunk_label="run_models", 
@@ -236,6 +274,7 @@ The variance by am_fctr appears to be independent.
 ```
 We reject the null hypothesis i.e. we have evidence to conclude that am_fctr impacts mpg (95% confidence). Manual transmission is better for miles per gallon versus automatic transmission.
 
+```{r print_sessionInfo, echo=FALSE}
 ## remove nearZeroVar features (not much variance)
 #require(reshape)
 #var_features_df <- melt(summaryBy(. ~ factor(0), data=entity_df[, features_lst], 
@@ -264,7 +303,5 @@ We reject the null hypothesis i.e. we have evidence to conclude that am_fctr imp
 #plot(mdl_1$finalModel, uniform=TRUE, main="base")
 #text(mdl_1$finalModel, use.n=TRUE, all=TRUE, cex=0.8)
 
-
-```{r print_sessionInfo, echo=FALSE}
 sessionInfo()
 ```
