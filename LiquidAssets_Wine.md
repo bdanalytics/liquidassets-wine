@@ -2,7 +2,7 @@
 bdanalytics  
 
 **  **    
-**Date: (Fri) Mar 13, 2015**    
+**Date: (Sun) Mar 15, 2015**    
 
 # Introduction:  
 
@@ -32,14 +32,21 @@ source("~/Dropbox/datascience/R/mydsutils.R")
 source("~/Dropbox/datascience/R/myplot.R")
 source("~/Dropbox/datascience/R/mypetrinet.R")
 # Gather all package requirements here
-#suppressPackageStartupMessages(require())
+suppressPackageStartupMessages(require(reshape2))
 
 #require(sos); findFn("pinv", maxPages=2, sortby="MaxScore")
 
-# Analysis specific global variables
+# Analysis control global variables
 glb_separate_predict_dataset <- TRUE
 glb_predct_var <- "Price"               # or NULL
-glb_sel_mdl <- NULL
+glb_id_var <- "Year"                    # or NULL
+glb_is_id_var_a_feature <- TRUE
+glb_exclude_vars_as_features <- "FrancePop" # or NULL; mydelete_cor_features prefers FrancePop over Age
+
+# Replace ???  
+#   entity_df with glb_entity_df
+#   predct_df with glb_predct_df
+#   glb_separate_predict_dataset with glb_is_separate_predict_dataset
 
 script_df <- data.frame(chunk_label="import_data", chunk_step_major=1, chunk_step_minor=0)
 print(script_df)
@@ -399,6 +406,139 @@ print(script_df)
 ### Step `4`.`1`: remove correlated features
 
 ```r
+print(glb_feats_df <- data.frame(id=setdiff(names(entity_df), glb_predct_var),
+            cor.y=cor(entity_df[, setdiff(names(entity_df), glb_predct_var)], 
+                        y=entity_df[, glb_predct_var])[,1]))
+```
+
+```
+##                      id      cor.y
+## Year               Year -0.4477679
+## WinterRain   WinterRain  0.1366505
+## AGST               AGST  0.6595629
+## HarvestRain HarvestRain -0.5633219
+## Age                 Age  0.4477679
+## FrancePop     FrancePop -0.4668616
+```
+
+```r
+print(glb_feats_df <- mydelete_cor_features())
+```
+
+```
+##                    Year   WinterRain        AGST HarvestRain         Age
+## Year         1.00000000  0.016970024 -0.24691585  0.02800907 -1.00000000
+## WinterRain   0.01697002  1.000000000 -0.32109061 -0.27544085 -0.01697002
+## AGST        -0.24691585 -0.321090611  1.00000000 -0.06449593  0.24691585
+## HarvestRain  0.02800907 -0.275440854 -0.06449593  1.00000000 -0.02800907
+## Age         -1.00000000 -0.016970024  0.24691585 -0.02800907  1.00000000
+## FrancePop    0.99448510 -0.001621627 -0.25916227  0.04126439 -0.99448510
+##                FrancePop
+## Year         0.994485097
+## WinterRain  -0.001621627
+## AGST        -0.259162274
+## HarvestRain  0.041264394
+## Age         -0.994485097
+## FrancePop    1.000000000
+##                   Year  WinterRain       AGST HarvestRain        Age
+## Year        0.00000000 0.016970024 0.24691585  0.02800907 1.00000000
+## WinterRain  0.01697002 0.000000000 0.32109061  0.27544085 0.01697002
+## AGST        0.24691585 0.321090611 0.00000000  0.06449593 0.24691585
+## HarvestRain 0.02800907 0.275440854 0.06449593  0.00000000 0.02800907
+## Age         1.00000000 0.016970024 0.24691585  0.02800907 0.00000000
+## FrancePop   0.99448510 0.001621627 0.25916227  0.04126439 0.99448510
+##               FrancePop
+## Year        0.994485097
+## WinterRain  0.001621627
+## AGST        0.259162274
+## HarvestRain 0.041264394
+## Age         0.994485097
+## FrancePop   0.000000000
+## [1] "cor(Year, Age)=-1.0000"
+```
+
+![](LiquidAssets_Wine_files/figure-html/remove_correlated_features-1.png) 
+
+```
+## [1] "cor(Price, Year)=-0.4478"
+## [1] "cor(Price, Age)=0.4478"
+```
+
+```
+## geom_smooth: method="auto" and size of largest group is <1000, so using loess. Use 'method = x' to change the smoothing method.
+## geom_smooth: method="auto" and size of largest group is <1000, so using loess. Use 'method = x' to change the smoothing method.
+```
+
+```
+## Warning in mydelete_cor_features(): Dropping Year as a feature
+```
+
+![](LiquidAssets_Wine_files/figure-html/remove_correlated_features-2.png) 
+
+```
+##                      id      cor.y
+## WinterRain   WinterRain  0.1366505
+## AGST               AGST  0.6595629
+## HarvestRain HarvestRain -0.5633219
+## Age                 Age  0.4477679
+## FrancePop     FrancePop -0.4668616
+##               WinterRain        AGST HarvestRain         Age    FrancePop
+## WinterRain   1.000000000 -0.32109061 -0.27544085 -0.01697002 -0.001621627
+## AGST        -0.321090611  1.00000000 -0.06449593  0.24691585 -0.259162274
+## HarvestRain -0.275440854 -0.06449593  1.00000000 -0.02800907  0.041264394
+## Age         -0.016970024  0.24691585 -0.02800907  1.00000000 -0.994485097
+## FrancePop   -0.001621627 -0.25916227  0.04126439 -0.99448510  1.000000000
+##              WinterRain       AGST HarvestRain        Age   FrancePop
+## WinterRain  0.000000000 0.32109061  0.27544085 0.01697002 0.001621627
+## AGST        0.321090611 0.00000000  0.06449593 0.24691585 0.259162274
+## HarvestRain 0.275440854 0.06449593  0.00000000 0.02800907 0.041264394
+## Age         0.016970024 0.24691585  0.02800907 0.00000000 0.994485097
+## FrancePop   0.001621627 0.25916227  0.04126439 0.99448510 0.000000000
+## [1] "cor(Age, FrancePop)=-0.9945"
+```
+
+![](LiquidAssets_Wine_files/figure-html/remove_correlated_features-3.png) 
+
+```
+## [1] "cor(Price, Age)=0.4478"
+## [1] "cor(Price, FrancePop)=-0.4669"
+```
+
+```
+## geom_smooth: method="auto" and size of largest group is <1000, so using loess. Use 'method = x' to change the smoothing method.
+## geom_smooth: method="auto" and size of largest group is <1000, so using loess. Use 'method = x' to change the smoothing method.
+```
+
+```
+## Warning in mydelete_cor_features(): Dropping FrancePop as a feature
+```
+
+![](LiquidAssets_Wine_files/figure-html/remove_correlated_features-4.png) 
+
+```
+##                      id      cor.y
+## WinterRain   WinterRain  0.1366505
+## AGST               AGST  0.6595629
+## HarvestRain HarvestRain -0.5633219
+## Age                 Age  0.4477679
+##              WinterRain        AGST HarvestRain         Age
+## WinterRain   1.00000000 -0.32109061 -0.27544085 -0.01697002
+## AGST        -0.32109061  1.00000000 -0.06449593  0.24691585
+## HarvestRain -0.27544085 -0.06449593  1.00000000 -0.02800907
+## Age         -0.01697002  0.24691585 -0.02800907  1.00000000
+##             WinterRain       AGST HarvestRain        Age
+## WinterRain  0.00000000 0.32109061  0.27544085 0.01697002
+## AGST        0.32109061 0.00000000  0.06449593 0.24691585
+## HarvestRain 0.27544085 0.06449593  0.00000000 0.02800907
+## Age         0.01697002 0.24691585  0.02800907 0.00000000
+##                      id      cor.y
+## WinterRain   WinterRain  0.1366505
+## AGST               AGST  0.6595629
+## HarvestRain HarvestRain -0.5633219
+## Age                 Age  0.4477679
+```
+
+```r
 script_df <- rbind(script_df, 
                    data.frame(chunk_label="run_models", 
                               chunk_step_major=max(script_df$chunk_step_major)+1, 
@@ -660,14 +800,13 @@ We reject the null hypothesis i.e. we have evidence to conclude that am_fctr imp
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-## [1] doBy_4.5-13     survival_2.38-1 ggplot2_1.0.0  
+## [1] reshape2_1.4.1  doBy_4.5-13     survival_2.38-1 ggplot2_1.0.0  
 ## 
 ## loaded via a namespace (and not attached):
 ##  [1] codetools_0.2-10 colorspace_1.2-5 digest_0.6.8     evaluate_0.5.5  
 ##  [5] formatR_1.0      grid_3.1.2       gtable_0.1.2     htmltools_0.2.6 
 ##  [9] knitr_1.9        labeling_0.3     lattice_0.20-30  MASS_7.3-39     
 ## [13] Matrix_1.1-5     munsell_0.4.2    plyr_1.8.1       proto_0.3-10    
-## [17] Rcpp_0.11.4      reshape2_1.4.1   rmarkdown_0.5.1  scales_0.2.4    
-## [21] splines_3.1.2    stringr_0.6.2    tcltk_3.1.2      tools_3.1.2     
-## [25] yaml_2.1.13
+## [17] Rcpp_0.11.4      rmarkdown_0.5.1  scales_0.2.4     splines_3.1.2   
+## [21] stringr_0.6.2    tcltk_3.1.2      tools_3.1.2      yaml_2.1.13
 ```

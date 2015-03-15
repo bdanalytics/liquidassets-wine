@@ -51,14 +51,21 @@ source("~/Dropbox/datascience/R/mydsutils.R")
 source("~/Dropbox/datascience/R/myplot.R")
 source("~/Dropbox/datascience/R/mypetrinet.R")
 # Gather all package requirements here
-#suppressPackageStartupMessages(require())
+suppressPackageStartupMessages(require(reshape2))
 
 #require(sos); findFn("pinv", maxPages=2, sortby="MaxScore")
 
-# Analysis specific global variables
+# Analysis control global variables
 glb_separate_predict_dataset <- TRUE
 glb_predct_var <- "Price"               # or NULL
-glb_sel_mdl <- NULL
+glb_id_var <- "Year"                    # or NULL
+glb_is_id_var_a_feature <- TRUE
+glb_exclude_vars_as_features <- "FrancePop" # or NULL; mydelete_cor_features prefers FrancePop over Age
+
+# Replace ???  
+#   entity_df with glb_entity_df
+#   predct_df with glb_predct_df
+#   glb_separate_predict_dataset with glb_is_separate_predict_dataset
 
 script_df <- data.frame(chunk_label="import_data", chunk_step_major=1, chunk_step_minor=0)
 print(script_df)
@@ -231,6 +238,11 @@ print(script_df)
 
 ### Step ``r script_df[nrow(script_df), "chunk_step_major"]``.``r script_df[nrow(script_df), "chunk_step_minor"]``: remove correlated features
 ```{r remove_correlated_features, cache=TRUE}
+print(glb_feats_df <- data.frame(id=setdiff(names(entity_df), glb_predct_var),
+            cor.y=cor(entity_df[, setdiff(names(entity_df), glb_predct_var)], 
+                        y=entity_df[, glb_predct_var])[,1]))
+
+print(glb_feats_df <- mydelete_cor_features())
 
 script_df <- rbind(script_df, 
                    data.frame(chunk_label="run_models", 
