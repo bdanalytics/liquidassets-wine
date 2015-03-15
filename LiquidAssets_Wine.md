@@ -37,16 +37,11 @@ suppressPackageStartupMessages(require(reshape2))
 #require(sos); findFn("pinv", maxPages=2, sortby="MaxScore")
 
 # Analysis control global variables
-glb_separate_predict_dataset <- TRUE
+glb_is_separate_predict_dataset <- TRUE
 glb_predct_var <- "Price"               # or NULL
 glb_id_var <- "Year"                    # or NULL
 glb_is_id_var_a_feature <- TRUE
 glb_exclude_vars_as_features <- "FrancePop" # or NULL; mydelete_cor_features prefers FrancePop over Age
-
-# Replace ???  
-#   entity_df with glb_entity_df
-#   predct_df with glb_predct_df
-#   glb_separate_predict_dataset with glb_is_separate_predict_dataset
 
 script_df <- data.frame(chunk_label="import_data", chunk_step_major=1, chunk_step_minor=0)
 print(script_df)
@@ -60,9 +55,9 @@ print(script_df)
 ## Step `1`: import data
 
 ```r
-entity_df <- myimport_data(
+glb_entity_df <- myimport_data(
     url="https://courses.edx.org/c4x/MITx/15.071x_2/asset/wine.csv", 
-    comment="entity_df", print_diagn=TRUE)
+    comment="glb_entity_df", print_diagn=TRUE)
 ```
 
 ```
@@ -97,20 +92,20 @@ entity_df <- myimport_data(
 ##  $ HarvestRain: int  160 80 130 110 187 187 290 38 52 155 ...
 ##  $ Age        : int  31 30 28 26 25 24 23 22 21 20 ...
 ##  $ FrancePop  : num  43184 43495 44218 45152 45654 ...
-##  - attr(*, "comment")= chr "entity_df"
+##  - attr(*, "comment")= chr "glb_entity_df"
 ## NULL
 ```
 
 ```r
-if (glb_separate_predict_dataset) {
-    predct_df <- myimport_data(
+if (glb_is_separate_predict_dataset) {
+    glb_predct_df <- myimport_data(
         url="https://courses.edx.org/c4x/MITx/15.071x_2/asset/wine_test.csv", 
-        comment="predct_df", print_diagn=TRUE)
+        comment="glb_predct_df", print_diagn=TRUE)
 } else {
-    predct_df <- entity_df[sample(1:nrow(entity_df), nrow(entity_df) / 1000),]
-    comment(predct_df) <- "predct_df"
-    myprint_df(predct_df)
-    str(predct_df)
+    glb_predct_df <- glb_entity_df[sample(1:nrow(glb_entity_df), nrow(glb_entity_df) / 1000),]
+    comment(glb_predct_df) <- "glb_predct_df"
+    myprint_df(glb_predct_df)
+    str(glb_predct_df)
 }         
 ```
 
@@ -128,7 +123,7 @@ if (glb_separate_predict_dataset) {
 ##  $ HarvestRain: int  122 74
 ##  $ Age        : int  4 3
 ##  $ FrancePop  : num  54836 55110
-##  - attr(*, "comment")= chr "predct_df"
+##  - attr(*, "comment")= chr "glb_predct_df"
 ## NULL
 ```
 
@@ -166,8 +161,8 @@ print(script_df)
 ### Step `2`.`1`: inspect/explore data
 
 ```r
-#print(str(entity_df))
-#View(entity_df)
+#print(str(glb_entity_df))
+#View(glb_entity_df)
 
 # List info gathered for various columns
 # <col_name>:   <description>; <notes>
@@ -175,14 +170,14 @@ print(script_df)
 # Create new features that help diagnostics
 #   Convert factors to dummy variables
 #   Potential Enhancements:
-#       One code chunk to cycle thru entity_df & predct_df ?
+#       One code chunk to cycle thru glb_entity_df & glb_predct_df ?
 #           Use with / within ?
-#           for (df in c(entity_df, predct_df)) cycles thru column names
-#           for (df in list(entity_df, predct_df)) does not change the actual dataframes
+#           for (df in c(glb_entity_df, glb_predct_df)) cycles thru column names
+#           for (df in list(glb_entity_df, glb_predct_df)) does not change the actual dataframes
 #
 #       Build splines   require(splines); bsBasis <- bs(training$age, df=3)
 
-# entity_df <- mutate(entity_df,
+# glb_entity_df <- mutate(glb_entity_df,
 #     <col_name>.NA=is.na(<col_name>) 
 #     <col_name>_fctr=as.factor(<col_name>),
 #     
@@ -193,10 +188,10 @@ print(script_df)
 #     
 #                     )
 # 
-# predct_df <- mutate(predct_df, 
+# glb_predct_df <- mutate(glb_predct_df, 
 #                     )
 
-print(summary(entity_df))
+print(summary(glb_entity_df))
 ```
 
 ```
@@ -217,7 +212,7 @@ print(summary(entity_df))
 ```
 
 ```r
-print(sapply(names(entity_df), function(col) sum(is.na(entity_df[, col]))))
+print(sapply(names(glb_entity_df), function(col) sum(is.na(glb_entity_df[, col]))))
 ```
 
 ```
@@ -228,7 +223,7 @@ print(sapply(names(entity_df), function(col) sum(is.na(entity_df[, col]))))
 ```
 
 ```r
-print(summary(predct_df))
+print(summary(glb_predct_df))
 ```
 
 ```
@@ -249,7 +244,7 @@ print(summary(predct_df))
 ```
 
 ```r
-print(sapply(names(predct_df), function(col) sum(is.na(predct_df[, col]))))
+print(sapply(names(glb_predct_df), function(col) sum(is.na(glb_predct_df[, col]))))
 ```
 
 ```
@@ -260,46 +255,46 @@ print(sapply(names(predct_df), function(col) sum(is.na(predct_df[, col]))))
 ```
 
 ```r
-#pairs(subset(entity_df, select=-c(col_symbol)))
+#pairs(subset(glb_entity_df, select=-c(col_symbol)))
 
-#   Histogram of predictor in entity_df & predct_df
-# Check for predct_df & entity_df features range mismatches
+#   Histogram of predictor in glb_entity_df & glb_predct_df
+# Check for glb_predct_df & glb_entity_df features range mismatches
 
 # Other diagnostics:
-# print(subset(entity_df, <col1_name> == max(entity_df$<col1_name>, na.rm=TRUE) & 
-#                         <col2_name> <= mean(entity_df$<col1_name>, na.rm=TRUE)))
+# print(subset(glb_entity_df, <col1_name> == max(glb_entity_df$<col1_name>, na.rm=TRUE) & 
+#                         <col2_name> <= mean(glb_entity_df$<col1_name>, na.rm=TRUE)))
 
-# print(<col_name>_freq_entity_df <- mycreate_tbl_df(entity_df, "<col_name>"))
-# print(which.min(table(entity_df$<col_name>)))
-# print(which.max(table(entity_df$<col_name>)))
-# print(which.max(table(entity_df$<col1_name>, entity_df$<col2_name>)[, 2]))
-# print(table(entity_df$<col1_name>, entity_df$<col2_name>))
-# print(table(is.na(entity_df$<col1_name>), entity_df$<col2_name>))
-# print(xtabs(~ <col1_name>, entity_df))
-# print(xtabs(~ <col1_name> + <col2_name>, entity_df))
-# print(<col1_name>_<col2_name>_xtab_entity_df <- 
-#   mycreate_xtab(entity_df, c("<col1_name>", "<col2_name>")))
-# <col1_name>_<col2_name>_xtab_entity_df[is.na(<col1_name>_<col2_name>_xtab_entity_df)] <- 0
-# print(<col1_name>_<col2_name>_xtab_entity_df <- 
-#   mutate(<col1_name>_<col2_name>_xtab_entity_df, 
+# print(<col_name>_freq_glb_entity_df <- mycreate_tbl_df(glb_entity_df, "<col_name>"))
+# print(which.min(table(glb_entity_df$<col_name>)))
+# print(which.max(table(glb_entity_df$<col_name>)))
+# print(which.max(table(glb_entity_df$<col1_name>, glb_entity_df$<col2_name>)[, 2]))
+# print(table(glb_entity_df$<col1_name>, glb_entity_df$<col2_name>))
+# print(table(is.na(glb_entity_df$<col1_name>), glb_entity_df$<col2_name>))
+# print(xtabs(~ <col1_name>, glb_entity_df))
+# print(xtabs(~ <col1_name> + <col2_name>, glb_entity_df))
+# print(<col1_name>_<col2_name>_xtab_glb_entity_df <- 
+#   mycreate_xtab(glb_entity_df, c("<col1_name>", "<col2_name>")))
+# <col1_name>_<col2_name>_xtab_glb_entity_df[is.na(<col1_name>_<col2_name>_xtab_glb_entity_df)] <- 0
+# print(<col1_name>_<col2_name>_xtab_glb_entity_df <- 
+#   mutate(<col1_name>_<col2_name>_xtab_glb_entity_df, 
 #             <col3_name>=(<col1_name> * 1.0) / (<col1_name> + <col2_name>))) 
 
 # print(<col2_name>_min_entity_arr <- 
-#    sort(tapply(entity_df$<col1_name>, entity_df$<col2_name>, min, na.rm=TRUE)))
+#    sort(tapply(glb_entity_df$<col1_name>, glb_entity_df$<col2_name>, min, na.rm=TRUE)))
 # print(<col1_name>_na_by_<col2_name>_arr <- 
-#    sort(tapply(entity_df$<col1_name>.NA, entity_df$<col2_name>, mean, na.rm=TRUE)))
+#    sort(tapply(glb_entity_df$<col1_name>.NA, glb_entity_df$<col2_name>, mean, na.rm=TRUE)))
 
 
 # Other plots:
-# print(myplot_histogram(entity_df, "<col1_name>"))
-# print(myplot_box(df=entity_df, ycol_names="<col1_name>"))
-# print(myplot_box(df=entity_df, ycol_names="<col1_name>", xcol_name="<col2_name>"))
-# print(myplot_line(subset(entity_df, Symbol %in% c("KO", "PG")), 
+# print(myplot_histogram(glb_entity_df, "<col1_name>"))
+# print(myplot_box(df=glb_entity_df, ycol_names="<col1_name>"))
+# print(myplot_box(df=glb_entity_df, ycol_names="<col1_name>", xcol_name="<col2_name>"))
+# print(myplot_line(subset(glb_entity_df, Symbol %in% c("KO", "PG")), 
 #                   "Date.my", "StockPrice", facet_row_colnames="Symbol") + 
 #     geom_vline(xintercept=as.numeric(as.Date("2003-03-01"))) +
 #     geom_vline(xintercept=as.numeric(as.Date("1983-01-01")))        
 #         )
-# print(myplot_scatter(entity_df, "<col1_name>", "<col2_name>"))
+# print(myplot_scatter(glb_entity_df, "<col1_name>", "<col2_name>"))
 
 script_df <- rbind(script_df, 
     data.frame(chunk_label="manage_missing_data", 
@@ -312,11 +307,11 @@ print(script_df)
 ##            chunk_label chunk_step_major chunk_step_minor
 ## 1          import_data                1                0
 ## 2         cleanse_data                2                0
-## 3 inspect_explore_data                3                1
-## 4  manage_missing_data                3                2
+## 3 inspect_explore_data                2                1
+## 4  manage_missing_data                2                2
 ```
 
-### Step `3`.`2`: manage missing data
+### Step `2`.`2`: manage missing data
 
 ```r
 script_df <- rbind(script_df, 
@@ -342,7 +337,7 @@ print(script_df)
 #     url="<map_url>", 
 #     comment="map_<col_name>_df", print_diagn=TRUE)
 # 
-# entity_df <- mymap_codes(entity_df, "<from_col_name>", "<to_col_name>", 
+# glb_entity_df <- mymap_codes(glb_entity_df, "<from_col_name>", "<to_col_name>", 
 #     map_<to_col_name>_df, map_join_col_name="<map_join_col_name>", 
 #                           map_tgt_col_name="<to_col_name>")
     					
@@ -354,15 +349,16 @@ print(script_df)
 ```
 
 ```
-##           chunk_label chunk_step_major chunk_step_minor
-## 1         import_data                1                0
-## 2        inspect_data                2                1
-## 3 manage_missing_data                2                2
-## 4  encode_retype_data                2                3
-## 5    extract_features                3                0
+##            chunk_label chunk_step_major chunk_step_minor
+## 1          import_data                1                0
+## 2         cleanse_data                2                0
+## 3 inspect_explore_data                3                1
+## 4  manage_missing_data                3                2
+## 5   encode_retype_data                3                3
+## 6     extract_features                4                0
 ```
 
-## Step `3`: extract features
+## Step `4`: extract features
 
 ```r
 script_df <- rbind(script_df, 
@@ -406,9 +402,9 @@ print(script_df)
 ### Step `4`.`1`: remove correlated features
 
 ```r
-print(glb_feats_df <- data.frame(id=setdiff(names(entity_df), glb_predct_var),
-            cor.y=cor(entity_df[, setdiff(names(entity_df), glb_predct_var)], 
-                        y=entity_df[, glb_predct_var])[,1]))
+print(glb_feats_df <- data.frame(id=setdiff(names(glb_entity_df), glb_predct_var),
+            cor.y=cor(glb_entity_df[, setdiff(names(glb_entity_df), glb_predct_var)], 
+                        y=glb_entity_df[, glb_predct_var])[,1]))
 ```
 
 ```

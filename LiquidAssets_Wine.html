@@ -96,16 +96,11 @@ suppressPackageStartupMessages(require(reshape2))
 #require(sos); findFn(&quot;pinv&quot;, maxPages=2, sortby=&quot;MaxScore&quot;)
 
 # Analysis control global variables
-glb_separate_predict_dataset &lt;- TRUE
+glb_is_separate_predict_dataset &lt;- TRUE
 glb_predct_var &lt;- &quot;Price&quot;               # or NULL
 glb_id_var &lt;- &quot;Year&quot;                    # or NULL
 glb_is_id_var_a_feature &lt;- TRUE
 glb_exclude_vars_as_features &lt;- &quot;FrancePop&quot; # or NULL; mydelete_cor_features prefers FrancePop over Age
-
-# Replace ???  
-#   entity_df with glb_entity_df
-#   predct_df with glb_predct_df
-#   glb_separate_predict_dataset with glb_is_separate_predict_dataset
 
 script_df &lt;- data.frame(chunk_label=&quot;import_data&quot;, chunk_step_major=1, chunk_step_minor=0)
 print(script_df)</code></pre>
@@ -113,9 +108,9 @@ print(script_df)</code></pre>
 ## 1 import_data                1                0</code></pre>
 <div id="step-1-import-data" class="section level2">
 <h2>Step <code>1</code>: import data</h2>
-<pre class="r"><code>entity_df &lt;- myimport_data(
+<pre class="r"><code>glb_entity_df &lt;- myimport_data(
     url=&quot;https://courses.edx.org/c4x/MITx/15.071x_2/asset/wine.csv&quot;, 
-    comment=&quot;entity_df&quot;, print_diagn=TRUE)</code></pre>
+    comment=&quot;glb_entity_df&quot;, print_diagn=TRUE)</code></pre>
 <pre><code>## [1] &quot;Reading file ./data/wine.csv...&quot;
 ## [1] &quot;dimensions of data in ./data/wine.csv: 25 rows x 7 cols&quot;
 ##   Year  Price WinterRain    AGST HarvestRain Age FrancePop
@@ -147,17 +142,17 @@ print(script_df)</code></pre>
 ##  $ HarvestRain: int  160 80 130 110 187 187 290 38 52 155 ...
 ##  $ Age        : int  31 30 28 26 25 24 23 22 21 20 ...
 ##  $ FrancePop  : num  43184 43495 44218 45152 45654 ...
-##  - attr(*, &quot;comment&quot;)= chr &quot;entity_df&quot;
+##  - attr(*, &quot;comment&quot;)= chr &quot;glb_entity_df&quot;
 ## NULL</code></pre>
-<pre class="r"><code>if (glb_separate_predict_dataset) {
-    predct_df &lt;- myimport_data(
+<pre class="r"><code>if (glb_is_separate_predict_dataset) {
+    glb_predct_df &lt;- myimport_data(
         url=&quot;https://courses.edx.org/c4x/MITx/15.071x_2/asset/wine_test.csv&quot;, 
-        comment=&quot;predct_df&quot;, print_diagn=TRUE)
+        comment=&quot;glb_predct_df&quot;, print_diagn=TRUE)
 } else {
-    predct_df &lt;- entity_df[sample(1:nrow(entity_df), nrow(entity_df) / 1000),]
-    comment(predct_df) &lt;- &quot;predct_df&quot;
-    myprint_df(predct_df)
-    str(predct_df)
+    glb_predct_df &lt;- glb_entity_df[sample(1:nrow(glb_entity_df), nrow(glb_entity_df) / 1000),]
+    comment(glb_predct_df) &lt;- &quot;glb_predct_df&quot;
+    myprint_df(glb_predct_df)
+    str(glb_predct_df)
 }         </code></pre>
 <pre><code>## [1] &quot;Reading file ./data/wine_test.csv...&quot;
 ## [1] &quot;dimensions of data in ./data/wine_test.csv: 2 rows x 7 cols&quot;
@@ -172,7 +167,7 @@ print(script_df)</code></pre>
 ##  $ HarvestRain: int  122 74
 ##  $ Age        : int  4 3
 ##  $ FrancePop  : num  54836 55110
-##  - attr(*, &quot;comment&quot;)= chr &quot;predct_df&quot;
+##  - attr(*, &quot;comment&quot;)= chr &quot;glb_predct_df&quot;
 ## NULL</code></pre>
 <pre class="r"><code>script_df &lt;- rbind(script_df,
                    data.frame(chunk_label=&quot;cleanse_data&quot;, 
@@ -196,8 +191,8 @@ print(script_df)</code></pre>
 ## 3 inspect_explore_data                2                1</code></pre>
 <div id="step-2.1-inspectexplore-data" class="section level3">
 <h3>Step <code>2</code>.<code>1</code>: inspect/explore data</h3>
-<pre class="r"><code>#print(str(entity_df))
-#View(entity_df)
+<pre class="r"><code>#print(str(glb_entity_df))
+#View(glb_entity_df)
 
 # List info gathered for various columns
 # &lt;col_name&gt;:   &lt;description&gt;; &lt;notes&gt;
@@ -205,14 +200,14 @@ print(script_df)</code></pre>
 # Create new features that help diagnostics
 #   Convert factors to dummy variables
 #   Potential Enhancements:
-#       One code chunk to cycle thru entity_df &amp; predct_df ?
+#       One code chunk to cycle thru glb_entity_df &amp; glb_predct_df ?
 #           Use with / within ?
-#           for (df in c(entity_df, predct_df)) cycles thru column names
-#           for (df in list(entity_df, predct_df)) does not change the actual dataframes
+#           for (df in c(glb_entity_df, glb_predct_df)) cycles thru column names
+#           for (df in list(glb_entity_df, glb_predct_df)) does not change the actual dataframes
 #
 #       Build splines   require(splines); bsBasis &lt;- bs(training$age, df=3)
 
-# entity_df &lt;- mutate(entity_df,
+# glb_entity_df &lt;- mutate(glb_entity_df,
 #     &lt;col_name&gt;.NA=is.na(&lt;col_name&gt;) 
 #     &lt;col_name&gt;_fctr=as.factor(&lt;col_name&gt;),
 #     
@@ -223,10 +218,10 @@ print(script_df)</code></pre>
 #     
 #                     )
 # 
-# predct_df &lt;- mutate(predct_df, 
+# glb_predct_df &lt;- mutate(glb_predct_df, 
 #                     )
 
-print(summary(entity_df))</code></pre>
+print(summary(glb_entity_df))</code></pre>
 <pre><code>##       Year          Price         WinterRain         AGST      
 ##  Min.   :1952   Min.   :6.205   Min.   :376.0   Min.   :14.98  
 ##  1st Qu.:1960   1st Qu.:6.519   1st Qu.:536.0   1st Qu.:16.20  
@@ -241,12 +236,12 @@ print(summary(entity_df))</code></pre>
 ##  Mean   :148.6   Mean   :17.2   Mean   :49694  
 ##  3rd Qu.:187.0   3rd Qu.:23.0   3rd Qu.:52894  
 ##  Max.   :292.0   Max.   :31.0   Max.   :54602</code></pre>
-<pre class="r"><code>print(sapply(names(entity_df), function(col) sum(is.na(entity_df[, col]))))</code></pre>
+<pre class="r"><code>print(sapply(names(glb_entity_df), function(col) sum(is.na(glb_entity_df[, col]))))</code></pre>
 <pre><code>##        Year       Price  WinterRain        AGST HarvestRain         Age 
 ##           0           0           0           0           0           0 
 ##   FrancePop 
 ##           0</code></pre>
-<pre class="r"><code>print(summary(predct_df))</code></pre>
+<pre class="r"><code>print(summary(glb_predct_df))</code></pre>
 <pre><code>##       Year          Price         WinterRain         AGST      
 ##  Min.   :1979   Min.   :6.498   Min.   :578.0   Min.   :16.00  
 ##  1st Qu.:1979   1st Qu.:6.612   1st Qu.:612.8   1st Qu.:16.04  
@@ -261,51 +256,51 @@ print(summary(entity_df))</code></pre>
 ##  Mean   : 98   Mean   :3.50   Mean   :54973  
 ##  3rd Qu.:110   3rd Qu.:3.75   3rd Qu.:55042  
 ##  Max.   :122   Max.   :4.00   Max.   :55110</code></pre>
-<pre class="r"><code>print(sapply(names(predct_df), function(col) sum(is.na(predct_df[, col]))))</code></pre>
+<pre class="r"><code>print(sapply(names(glb_predct_df), function(col) sum(is.na(glb_predct_df[, col]))))</code></pre>
 <pre><code>##        Year       Price  WinterRain        AGST HarvestRain         Age 
 ##           0           0           0           0           0           0 
 ##   FrancePop 
 ##           0</code></pre>
-<pre class="r"><code>#pairs(subset(entity_df, select=-c(col_symbol)))
+<pre class="r"><code>#pairs(subset(glb_entity_df, select=-c(col_symbol)))
 
-#   Histogram of predictor in entity_df &amp; predct_df
-# Check for predct_df &amp; entity_df features range mismatches
+#   Histogram of predictor in glb_entity_df &amp; glb_predct_df
+# Check for glb_predct_df &amp; glb_entity_df features range mismatches
 
 # Other diagnostics:
-# print(subset(entity_df, &lt;col1_name&gt; == max(entity_df$&lt;col1_name&gt;, na.rm=TRUE) &amp; 
-#                         &lt;col2_name&gt; &lt;= mean(entity_df$&lt;col1_name&gt;, na.rm=TRUE)))
+# print(subset(glb_entity_df, &lt;col1_name&gt; == max(glb_entity_df$&lt;col1_name&gt;, na.rm=TRUE) &amp; 
+#                         &lt;col2_name&gt; &lt;= mean(glb_entity_df$&lt;col1_name&gt;, na.rm=TRUE)))
 
-# print(&lt;col_name&gt;_freq_entity_df &lt;- mycreate_tbl_df(entity_df, &quot;&lt;col_name&gt;&quot;))
-# print(which.min(table(entity_df$&lt;col_name&gt;)))
-# print(which.max(table(entity_df$&lt;col_name&gt;)))
-# print(which.max(table(entity_df$&lt;col1_name&gt;, entity_df$&lt;col2_name&gt;)[, 2]))
-# print(table(entity_df$&lt;col1_name&gt;, entity_df$&lt;col2_name&gt;))
-# print(table(is.na(entity_df$&lt;col1_name&gt;), entity_df$&lt;col2_name&gt;))
-# print(xtabs(~ &lt;col1_name&gt;, entity_df))
-# print(xtabs(~ &lt;col1_name&gt; + &lt;col2_name&gt;, entity_df))
-# print(&lt;col1_name&gt;_&lt;col2_name&gt;_xtab_entity_df &lt;- 
-#   mycreate_xtab(entity_df, c(&quot;&lt;col1_name&gt;&quot;, &quot;&lt;col2_name&gt;&quot;)))
-# &lt;col1_name&gt;_&lt;col2_name&gt;_xtab_entity_df[is.na(&lt;col1_name&gt;_&lt;col2_name&gt;_xtab_entity_df)] &lt;- 0
-# print(&lt;col1_name&gt;_&lt;col2_name&gt;_xtab_entity_df &lt;- 
-#   mutate(&lt;col1_name&gt;_&lt;col2_name&gt;_xtab_entity_df, 
+# print(&lt;col_name&gt;_freq_glb_entity_df &lt;- mycreate_tbl_df(glb_entity_df, &quot;&lt;col_name&gt;&quot;))
+# print(which.min(table(glb_entity_df$&lt;col_name&gt;)))
+# print(which.max(table(glb_entity_df$&lt;col_name&gt;)))
+# print(which.max(table(glb_entity_df$&lt;col1_name&gt;, glb_entity_df$&lt;col2_name&gt;)[, 2]))
+# print(table(glb_entity_df$&lt;col1_name&gt;, glb_entity_df$&lt;col2_name&gt;))
+# print(table(is.na(glb_entity_df$&lt;col1_name&gt;), glb_entity_df$&lt;col2_name&gt;))
+# print(xtabs(~ &lt;col1_name&gt;, glb_entity_df))
+# print(xtabs(~ &lt;col1_name&gt; + &lt;col2_name&gt;, glb_entity_df))
+# print(&lt;col1_name&gt;_&lt;col2_name&gt;_xtab_glb_entity_df &lt;- 
+#   mycreate_xtab(glb_entity_df, c(&quot;&lt;col1_name&gt;&quot;, &quot;&lt;col2_name&gt;&quot;)))
+# &lt;col1_name&gt;_&lt;col2_name&gt;_xtab_glb_entity_df[is.na(&lt;col1_name&gt;_&lt;col2_name&gt;_xtab_glb_entity_df)] &lt;- 0
+# print(&lt;col1_name&gt;_&lt;col2_name&gt;_xtab_glb_entity_df &lt;- 
+#   mutate(&lt;col1_name&gt;_&lt;col2_name&gt;_xtab_glb_entity_df, 
 #             &lt;col3_name&gt;=(&lt;col1_name&gt; * 1.0) / (&lt;col1_name&gt; + &lt;col2_name&gt;))) 
 
 # print(&lt;col2_name&gt;_min_entity_arr &lt;- 
-#    sort(tapply(entity_df$&lt;col1_name&gt;, entity_df$&lt;col2_name&gt;, min, na.rm=TRUE)))
+#    sort(tapply(glb_entity_df$&lt;col1_name&gt;, glb_entity_df$&lt;col2_name&gt;, min, na.rm=TRUE)))
 # print(&lt;col1_name&gt;_na_by_&lt;col2_name&gt;_arr &lt;- 
-#    sort(tapply(entity_df$&lt;col1_name&gt;.NA, entity_df$&lt;col2_name&gt;, mean, na.rm=TRUE)))
+#    sort(tapply(glb_entity_df$&lt;col1_name&gt;.NA, glb_entity_df$&lt;col2_name&gt;, mean, na.rm=TRUE)))
 
 
 # Other plots:
-# print(myplot_histogram(entity_df, &quot;&lt;col1_name&gt;&quot;))
-# print(myplot_box(df=entity_df, ycol_names=&quot;&lt;col1_name&gt;&quot;))
-# print(myplot_box(df=entity_df, ycol_names=&quot;&lt;col1_name&gt;&quot;, xcol_name=&quot;&lt;col2_name&gt;&quot;))
-# print(myplot_line(subset(entity_df, Symbol %in% c(&quot;KO&quot;, &quot;PG&quot;)), 
+# print(myplot_histogram(glb_entity_df, &quot;&lt;col1_name&gt;&quot;))
+# print(myplot_box(df=glb_entity_df, ycol_names=&quot;&lt;col1_name&gt;&quot;))
+# print(myplot_box(df=glb_entity_df, ycol_names=&quot;&lt;col1_name&gt;&quot;, xcol_name=&quot;&lt;col2_name&gt;&quot;))
+# print(myplot_line(subset(glb_entity_df, Symbol %in% c(&quot;KO&quot;, &quot;PG&quot;)), 
 #                   &quot;Date.my&quot;, &quot;StockPrice&quot;, facet_row_colnames=&quot;Symbol&quot;) + 
 #     geom_vline(xintercept=as.numeric(as.Date(&quot;2003-03-01&quot;))) +
 #     geom_vline(xintercept=as.numeric(as.Date(&quot;1983-01-01&quot;)))        
 #         )
-# print(myplot_scatter(entity_df, &quot;&lt;col1_name&gt;&quot;, &quot;&lt;col2_name&gt;&quot;))
+# print(myplot_scatter(glb_entity_df, &quot;&lt;col1_name&gt;&quot;, &quot;&lt;col2_name&gt;&quot;))
 
 script_df &lt;- rbind(script_df, 
     data.frame(chunk_label=&quot;manage_missing_data&quot;, 
@@ -315,11 +310,11 @@ print(script_df)</code></pre>
 <pre><code>##            chunk_label chunk_step_major chunk_step_minor
 ## 1          import_data                1                0
 ## 2         cleanse_data                2                0
-## 3 inspect_explore_data                3                1
-## 4  manage_missing_data                3                2</code></pre>
+## 3 inspect_explore_data                2                1
+## 4  manage_missing_data                2                2</code></pre>
 </div>
-<div id="step-3.2-manage-missing-data" class="section level3">
-<h3>Step <code>3</code>.<code>2</code>: manage missing data</h3>
+<div id="step-2.2-manage-missing-data" class="section level3">
+<h3>Step <code>2</code>.<code>2</code>: manage missing data</h3>
 <pre class="r"><code>script_df &lt;- rbind(script_df, 
     data.frame(chunk_label=&quot;encode_retype_data&quot;, 
         chunk_step_major=max(script_df$chunk_step_major), 
@@ -338,7 +333,7 @@ print(script_df)</code></pre>
 #     url=&quot;&lt;map_url&gt;&quot;, 
 #     comment=&quot;map_&lt;col_name&gt;_df&quot;, print_diagn=TRUE)
 # 
-# entity_df &lt;- mymap_codes(entity_df, &quot;&lt;from_col_name&gt;&quot;, &quot;&lt;to_col_name&gt;&quot;, 
+# glb_entity_df &lt;- mymap_codes(glb_entity_df, &quot;&lt;from_col_name&gt;&quot;, &quot;&lt;to_col_name&gt;&quot;, 
 #     map_&lt;to_col_name&gt;_df, map_join_col_name=&quot;&lt;map_join_col_name&gt;&quot;, 
 #                           map_tgt_col_name=&quot;&lt;to_col_name&gt;&quot;)
                         
@@ -347,16 +342,17 @@ script_df &lt;- rbind(script_df,
                               chunk_step_major=max(script_df$chunk_step_major)+1, 
                               chunk_step_minor=0))
 print(script_df)</code></pre>
-<pre><code>##           chunk_label chunk_step_major chunk_step_minor
-## 1         import_data                1                0
-## 2        inspect_data                2                1
-## 3 manage_missing_data                2                2
-## 4  encode_retype_data                2                3
-## 5    extract_features                3                0</code></pre>
+<pre><code>##            chunk_label chunk_step_major chunk_step_minor
+## 1          import_data                1                0
+## 2         cleanse_data                2                0
+## 3 inspect_explore_data                3                1
+## 4  manage_missing_data                3                2
+## 5   encode_retype_data                3                3
+## 6     extract_features                4                0</code></pre>
 </div>
 </div>
-<div id="step-3-extract-features" class="section level2">
-<h2>Step <code>3</code>: extract features</h2>
+<div id="step-4-extract-features" class="section level2">
+<h2>Step <code>4</code>: extract features</h2>
 <pre class="r"><code>script_df &lt;- rbind(script_df, 
                    data.frame(chunk_label=&quot;select_features&quot;, 
                               chunk_step_major=max(script_df$chunk_step_major)+1, 
@@ -387,9 +383,9 @@ print(script_df)</code></pre>
 ## 7 remove_correlated_features                4                1</code></pre>
 <div id="step-4.1-remove-correlated-features" class="section level3">
 <h3>Step <code>4</code>.<code>1</code>: remove correlated features</h3>
-<pre class="r"><code>print(glb_feats_df &lt;- data.frame(id=setdiff(names(entity_df), glb_predct_var),
-            cor.y=cor(entity_df[, setdiff(names(entity_df), glb_predct_var)], 
-                        y=entity_df[, glb_predct_var])[,1]))</code></pre>
+<pre class="r"><code>print(glb_feats_df &lt;- data.frame(id=setdiff(names(glb_entity_df), glb_predct_var),
+            cor.y=cor(glb_entity_df[, setdiff(names(glb_entity_df), glb_predct_var)], 
+                        y=glb_entity_df[, glb_predct_var])[,1]))</code></pre>
 <pre><code>##                      id      cor.y
 ## Year               Year -0.4477679
 ## WinterRain   WinterRain  0.1366505
