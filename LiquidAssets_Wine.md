@@ -2,7 +2,7 @@
 bdanalytics  
 
 **  **    
-**Date: (Sun) Mar 15, 2015**    
+**Date: (Mon) Mar 16, 2015**    
 
 # Introduction:  
 
@@ -39,6 +39,7 @@ suppressPackageStartupMessages(require(reshape2))
 # Analysis control global variables
 glb_is_separate_predict_dataset <- TRUE
 glb_predct_var <- "Price"               # or NULL
+glb_predct_var_name <- paste0(glb_predct_var, ".predict")
 glb_id_var <- "Year"                    # or NULL
 glb_is_id_var_a_feature <- TRUE
 glb_exclude_vars_as_features <- "FrancePop" # or NULL; mydelete_cor_features prefers FrancePop over Age
@@ -557,20 +558,28 @@ print(script_df)
 ## Step `5`: run models
 
 ```r
-models_df <- data.frame()
+glb_models_df <- data.frame()
 
 #   Regression:
 #       Linear:
 ret_lst <- myrun_mdl_lm(indep_vars_vctr=c("AGST"), 
-                        models_df=models_df)
-print(summary(mdl <- ret_lst$model)); print(models_df <- ret_lst$models_df)
+                        fit_df=glb_entity_df, OOB_df=glb_predct_df)
+```
+
+```
+## [1] 0.07135757
+## [1] 0.7882105
+```
+
+```r
+print(summary(mdl <- ret_lst$model)); 
 ```
 
 ```
 ## 
 ## Call:
 ## lm(formula = reformulate(indep_vars_vctr, response = glb_predct_var), 
-##     data = entity_df)
+##     data = fit_df)
 ## 
 ## Residuals:
 ##      Min       1Q   Median       3Q      Max 
@@ -588,22 +597,35 @@ print(summary(mdl <- ret_lst$model)); print(models_df <- ret_lst$models_df)
 ## F-statistic: 17.71 on 1 and 23 DF,  p-value: 0.000335
 ```
 
+```r
+print(orderBy(~ -R.sq.OOB -Adj.R.sq.fit, 
+              glb_models_df <- rbind(glb_models_df, ret_lst$models_df)))
 ```
-##   feats Adj.R.sq      SSE
-## 1  AGST 0.410459 5.734875
+
+```
+##   feats n.fit  R.sq.fit  R.sq.OOB Adj.R.sq.fit  SSE.fit    SSE.OOB
+## 1  AGST    25 0.4350232 0.7882105     0.410459 5.734875 0.07135757
 ```
 
 ```r
 ret_lst <- myrun_mdl_lm(indep_vars_vctr=c("AGST", "HarvestRain"), 
-                        models_df=models_df)
-print(summary(mdl <- ret_lst$model)); print(models_df <- ret_lst$models_df)
+                        fit_df=glb_entity_df, OOB_df=glb_predct_df)
+```
+
+```
+## [1] 0.3645547
+## [1] -0.08199948
+```
+
+```r
+print(summary(mdl <- ret_lst$model)); 
 ```
 
 ```
 ## 
 ## Call:
 ## lm(formula = reformulate(indep_vars_vctr, response = glb_predct_var), 
-##     data = entity_df)
+##     data = fit_df)
 ## 
 ## Residuals:
 ##      Min       1Q   Median       3Q      Max 
@@ -622,23 +644,93 @@ print(summary(mdl <- ret_lst$model)); print(models_df <- ret_lst$models_df)
 ## F-statistic: 26.59 on 2 and 22 DF,  p-value: 1.347e-06
 ```
 
+```r
+print(orderBy(~ -R.sq.OOB -Adj.R.sq.fit, 
+              glb_models_df <- rbind(glb_models_df, ret_lst$models_df)))
 ```
-##               feats  Adj.R.sq      SSE
-## 1              AGST 0.4104590 5.734875
-## 2 AGST, HarvestRain 0.6807681 2.970373
+
+```
+##               feats n.fit  R.sq.fit    R.sq.OOB Adj.R.sq.fit  SSE.fit
+## 1              AGST    25 0.4350232  0.78821050    0.4104590 5.734875
+## 2 AGST, HarvestRain    25 0.7073708 -0.08199948    0.6807681 2.970373
+##      SSE.OOB
+## 1 0.07135757
+## 2 0.36455468
 ```
 
 ```r
-ret_lst <- myrun_mdl_lm(indep_vars_vctr=c("HarvestRain", "WinterRain"), 
-                        models_df=models_df)
-print(summary(mdl <- ret_lst$model)); print(models_df <- ret_lst$models_df)
+ret_lst <- myrun_mdl_lm(indep_vars_vctr=c("AGST", "HarvestRain", "Age"), 
+                        fit_df=glb_entity_df, OOB_df=glb_predct_df)
+```
+
+```
+## [1] 0.1569299
+## [1] 0.5342316
+```
+
+```r
+print(summary(mdl <- ret_lst$model)); 
 ```
 
 ```
 ## 
 ## Call:
 ## lm(formula = reformulate(indep_vars_vctr, response = glb_predct_var), 
-##     data = entity_df)
+##     data = fit_df)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -0.66258 -0.22953 -0.00268  0.27236  0.49391 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(>|t|)    
+## (Intercept) -1.4778196  1.6274142  -0.908  0.37414    
+## AGST         0.5322922  0.0995343   5.348 2.65e-05 ***
+## HarvestRain -0.0045386  0.0008757  -5.183 3.90e-05 ***
+## Age          0.0250875  0.0087249   2.875  0.00905 ** 
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.3186 on 21 degrees of freedom
+## Multiple R-squared:   0.79,	Adjusted R-squared:   0.76 
+## F-statistic: 26.34 on 3 and 21 DF,  p-value: 2.596e-07
+```
+
+```r
+print(orderBy(~ -R.sq.OOB -Adj.R.sq.fit, 
+              glb_models_df <- rbind(glb_models_df, ret_lst$models_df)))
+```
+
+```
+##                    feats n.fit  R.sq.fit    R.sq.OOB Adj.R.sq.fit  SSE.fit
+## 1                   AGST    25 0.4350232  0.78821050    0.4104590 5.734875
+## 3 AGST, HarvestRain, Age    25 0.7900362  0.53423162    0.7600414 2.131266
+## 2      AGST, HarvestRain    25 0.7073708 -0.08199948    0.6807681 2.970373
+##      SSE.OOB
+## 1 0.07135757
+## 3 0.15692988
+## 2 0.36455468
+```
+
+```r
+ret_lst <- myrun_mdl_lm(indep_vars_vctr=c("HarvestRain", "WinterRain"), 
+                        fit_df=glb_entity_df, OOB_df=glb_predct_df)
+```
+
+```
+## [1] 0.9434133
+## [1] -1.800054
+```
+
+```r
+print(summary(mdl <- ret_lst$model)); 
+```
+
+```
+## 
+## Call:
+## lm(formula = reformulate(indep_vars_vctr, response = glb_predct_var), 
+##     data = fit_df)
 ## 
 ## Residuals:
 ##     Min      1Q  Median      3Q     Max 
@@ -657,24 +749,48 @@ print(summary(mdl <- ret_lst$model)); print(models_df <- ret_lst$models_df)
 ## F-statistic: 5.122 on 2 and 22 DF,  p-value: 0.01492
 ```
 
+```r
+print(orderBy(~ -R.sq.OOB -Adj.R.sq.fit, 
+              glb_models_df <- rbind(glb_models_df, ret_lst$models_df)))
 ```
-##                     feats  Adj.R.sq      SSE
-## 1                    AGST 0.4104590 5.734875
-## 2       AGST, HarvestRain 0.6807681 2.970373
-## 3 HarvestRain, WinterRain 0.2556753 6.925756
+
+```
+##                     feats n.fit  R.sq.fit    R.sq.OOB Adj.R.sq.fit
+## 1                    AGST    25 0.4350232  0.78821050    0.4104590
+## 3  AGST, HarvestRain, Age    25 0.7900362  0.53423162    0.7600414
+## 2       AGST, HarvestRain    25 0.7073708 -0.08199948    0.6807681
+## 4 HarvestRain, WinterRain    25 0.3177024 -1.80005374    0.2556753
+##    SSE.fit    SSE.OOB
+## 1 5.734875 0.07135757
+## 3 2.131266 0.15692988
+## 2 2.970373 0.36455468
+## 4 6.925756 0.94341330
 ```
 
 ```r
 ret_lst <- myrun_mdl_lm(indep_vars_vctr=".", 
-                        models_df=models_df)
-print(summary(mdl <- ret_lst$model)); print(models_df <- ret_lst$models_df)
+                        fit_df=glb_entity_df, OOB_df=glb_predct_df)
+```
+
+```
+## Warning in predict.lm(mdl, newdata = OOB_df): prediction from a
+## rank-deficient fit may be misleading
+```
+
+```
+## [1] 0.08199167
+## [1] 0.7566484
+```
+
+```r
+print(summary(mdl <- ret_lst$model)); 
 ```
 
 ```
 ## 
 ## Call:
 ## lm(formula = reformulate(indep_vars_vctr, response = glb_predct_var), 
-##     data = entity_df)
+##     data = fit_df)
 ## 
 ## Residuals:
 ##      Min       1Q   Median       3Q      Max 
@@ -697,25 +813,45 @@ print(summary(mdl <- ret_lst$model)); print(models_df <- ret_lst$models_df)
 ## F-statistic: 18.47 on 5 and 19 DF,  p-value: 1.044e-06
 ```
 
+```r
+print(orderBy(~ -R.sq.OOB -Adj.R.sq.fit, 
+              glb_models_df <- rbind(glb_models_df, ret_lst$models_df)))
 ```
-##                                                 feats  Adj.R.sq      SSE
-## 1                                                AGST 0.4104590 5.734875
-## 2                                   AGST, HarvestRain 0.6807681 2.970373
-## 3                             HarvestRain, WinterRain 0.2556753 6.925756
-## 4 Year, WinterRain, AGST, HarvestRain, Age, FrancePop 0.7844538 1.732113
+
+```
+##                                                 feats n.fit  R.sq.fit
+## 1                                                AGST    25 0.4350232
+## 5 Year, WinterRain, AGST, HarvestRain, Age, FrancePop    25 0.8293592
+## 3                              AGST, HarvestRain, Age    25 0.7900362
+## 2                                   AGST, HarvestRain    25 0.7073708
+## 4                             HarvestRain, WinterRain    25 0.3177024
+##      R.sq.OOB Adj.R.sq.fit  SSE.fit    SSE.OOB
+## 1  0.78821050    0.4104590 5.734875 0.07135757
+## 5  0.75664845    0.7844538 1.732113 0.08199167
+## 3  0.53423162    0.7600414 2.131266 0.15692988
+## 2 -0.08199948    0.6807681 2.970373 0.36455468
+## 4 -1.80005374    0.2556753 6.925756 0.94341330
 ```
 
 ```r
-ret_lst <- myrun_mdl_lm(indep_vars_vctr=c("AGST", "HarvestRain", "Age", "WinterRain"), 
-                        models_df=models_df)
-print(summary(mdl <- ret_lst$model)); print(models_df <- ret_lst$models_df)
+ret_lst <- myrun_mdl_lm(indep_vars_vctr=c("AGST", "HarvestRain", "Age", "WinterRain"),
+                        fit_df=glb_entity_df, OOB_df=glb_predct_df)
+```
+
+```
+## [1] 0.06926281
+## [1] 0.7944278
+```
+
+```r
+print(summary(mdl <- ret_lst$model)); 
 ```
 
 ```
 ## 
 ## Call:
 ## lm(formula = reformulate(indep_vars_vctr, response = glb_predct_var), 
-##     data = entity_df)
+##     data = fit_df)
 ## 
 ## Residuals:
 ##      Min       1Q   Median       3Q      Max 
@@ -736,29 +872,42 @@ print(summary(mdl <- ret_lst$model)); print(models_df <- ret_lst$models_df)
 ## F-statistic: 24.17 on 4 and 20 DF,  p-value: 2.036e-07
 ```
 
+```r
+print(orderBy(~ -R.sq.OOB -Adj.R.sq.fit, 
+              glb_models_df <- rbind(glb_models_df, ret_lst$models_df)))
 ```
-##                                                 feats  Adj.R.sq      SSE
-## 1                                                AGST 0.4104590 5.734875
-## 2                                   AGST, HarvestRain 0.6807681 2.970373
-## 3                             HarvestRain, WinterRain 0.2556753 6.925756
-## 4 Year, WinterRain, AGST, HarvestRain, Age, FrancePop 0.7844538 1.732113
-## 5                  AGST, HarvestRain, Age, WinterRain 0.7942795 1.740162
+
+```
+##                                                 feats n.fit  R.sq.fit
+## 6                  AGST, HarvestRain, Age, WinterRain    25 0.8285662
+## 1                                                AGST    25 0.4350232
+## 5 Year, WinterRain, AGST, HarvestRain, Age, FrancePop    25 0.8293592
+## 3                              AGST, HarvestRain, Age    25 0.7900362
+## 2                                   AGST, HarvestRain    25 0.7073708
+## 4                             HarvestRain, WinterRain    25 0.3177024
+##      R.sq.OOB Adj.R.sq.fit  SSE.fit    SSE.OOB
+## 6  0.79442776    0.7942795 1.740162 0.06926281
+## 1  0.78821050    0.4104590 5.734875 0.07135757
+## 5  0.75664845    0.7844538 1.732113 0.08199167
+## 3  0.53423162    0.7600414 2.131266 0.15692988
+## 2 -0.08199948    0.6807681 2.970373 0.36455468
+## 4 -1.80005374    0.2556753 6.925756 0.94341330
 ```
 
 ```r
 glb_sel_mdl <- mdl
 
-print(myplot_scatter(models_df, "SSE", "Adj.R.sq") + 
-          geom_text(aes(label=feats), data=models_df, color="NavyBlue", size=3.5))
+print(myplot_scatter(glb_models_df, "Adj.R.sq.fit", "R.sq.OOB") + 
+          geom_text(aes(label=feats), data=glb_models_df, color="NavyBlue", size=3.5))
 ```
 
 ![](LiquidAssets_Wine_files/figure-html/run_models-1.png) 
 
 ```r
-# script_df <- rbind(script_df, 
-#                    data.frame(chunk_label="run_models", 
-#                               chunk_step_major=max(script_df$chunk_step_major)+1, 
-#                               chunk_step_minor=0))
+script_df <- rbind(script_df, 
+                   data.frame(chunk_label="fit_trainingall", 
+                              chunk_step_major=max(script_df$chunk_step_major)+1, 
+                              chunk_step_minor=0))
 print(script_df)
 ```
 
@@ -772,7 +921,90 @@ print(script_df)
 ## 6            select_features                4                0
 ## 7 remove_correlated_features                4                1
 ## 8                 run_models                5                0
+## 9            fit_trainingall                6                0
 ```
+
+## Step `6`: fit trainingall
+
+```r
+ret_lst <- myrun_mdl_lm(indep_vars_vctr=glb_feats_df$id, fit_df=glb_entity_df)
+print(summary(mdl <- ret_lst$model)); print(glb_sel_mdl_df <- ret_lst$models_df)
+```
+
+```
+## 
+## Call:
+## lm(formula = reformulate(indep_vars_vctr, response = glb_predct_var), 
+##     data = fit_df)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -0.45470 -0.24273  0.00752  0.19773  0.53637 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(>|t|)    
+## (Intercept) -3.4299802  1.7658975  -1.942 0.066311 .  
+## WinterRain   0.0010755  0.0005073   2.120 0.046694 *  
+## AGST         0.6072093  0.0987022   6.152  5.2e-06 ***
+## HarvestRain -0.0039715  0.0008538  -4.652 0.000154 ***
+## Age          0.0239308  0.0080969   2.956 0.007819 ** 
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.295 on 20 degrees of freedom
+## Multiple R-squared:  0.8286,	Adjusted R-squared:  0.7943 
+## F-statistic: 24.17 on 4 and 20 DF,  p-value: 2.036e-07
+```
+
+```
+##                                feats n.fit  R.sq.fit R.sq.OOB Adj.R.sq.fit
+## 1 WinterRain, AGST, HarvestRain, Age    25 0.8285662       NA    0.7942795
+##    SSE.fit SSE.OOB
+## 1 1.740162      NA
+```
+
+```r
+glb_sel_mdl <- mdl
+
+script_df <- rbind(script_df, 
+                   data.frame(chunk_label="predict_newdata", 
+                              chunk_step_major=max(script_df$chunk_step_major)+1, 
+                              chunk_step_minor=0))
+print(script_df)
+```
+
+```
+##                   chunk_label chunk_step_major chunk_step_minor
+## 1                 import_data                1                0
+## 2                inspect_data                2                1
+## 3         manage_missing_data                2                2
+## 4                 encode_data                2                2
+## 5            extract_features                3                0
+## 6             select_features                4                0
+## 7  remove_correlated_features                4                1
+## 8                  run_models                5                0
+## 9             fit_trainingall                6                0
+## 10            predict_newdata                7                0
+```
+
+## Step `7`: predict newdata
+
+```r
+glb_predct_df[, glb_predct_var_name] <- predict(glb_sel_mdl, newdata=glb_predct_df)
+print(glb_predct_df)
+```
+
+```
+##   Year  Price WinterRain    AGST HarvestRain Age FrancePop Price.predict
+## 1 1979 6.9541        717 16.1667         122   4  54835.83      6.768925
+## 2 1980 6.4979        578 16.0000          74   3  55110.24      6.684910
+```
+
+```r
+print(myplot_scatter(glb_predct_df, glb_predct_var, glb_predct_var_name))
+```
+
+![](LiquidAssets_Wine_files/figure-html/predict_newdata-1.png) 
 
 Null Hypothesis ($\sf{H_{0}}$): mpg is not impacted by am_fctr.  
 The variance by am_fctr appears to be independent. 
