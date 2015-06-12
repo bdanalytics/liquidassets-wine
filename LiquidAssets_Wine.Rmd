@@ -283,7 +283,7 @@ print(summary(mdl <- ret_lst$model));
 print(orderBy(~ -R.sq.OOB -Adj.R.sq.fit, 
               glb_models_df <- rbind(glb_models_df, ret_lst$models_df)))
 
-ret_lst <- myrun_mdl_lm(indep_vars_vctr=c("AGST", "HarvestRain", "Age", "WinterRain"),
+ret_lst <- myrun_mdl_lm(indep_vars_vctr=glb_feats_df$id,
                         fit_df=glb_entity_df, OOB_df=glb_predct_df)
 print(summary(mdl <- ret_lst$model)); 
 print(orderBy(~ -R.sq.OOB -Adj.R.sq.fit, 
