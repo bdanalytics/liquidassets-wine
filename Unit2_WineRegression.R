@@ -1,9 +1,16 @@
 # VIDEO 4
 
 # Read in data
-wine = read.csv("wine.csv")
+wine = read.csv("data/wine.csv")
 str(wine)
 summary(wine)
+
+fitMdl <- function(ftrs) {
+    mdl <- lm(reformulate(ftrs, "Price"), data = wine)
+    print(summary(mdl))
+    return(mdl)
+}
+mdl <- fitMdl(c("HarvestRain", "WinterRain"))
 
 # Linear Regression (one variable)
 model1 = lm(Price ~ AGST, data=wine)
